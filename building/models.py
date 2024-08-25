@@ -28,3 +28,18 @@ class Apartment(models.Model):
 
     def __str__(self):
         return str(self.number)
+
+
+class Bill(models.Model):
+    apartment = models.ForeignKey('Apartment', on_delete=models.CASCADE)
+    electricity = models.FloatField()
+    cleaning = models.FloatField()
+    elevator_electricity = models.FloatField()
+    elevator_maintenance = models.FloatField()
+    entrance_maintenance = models.FloatField(default=10)
+
+    def __str__(self):
+        return str(self.apartment)
+
+    def total_bill(self):
+        return self.electricity + self.cleaning + self.elevator_electricity + self.elevator_maintenance + self.entrance_maintenance
