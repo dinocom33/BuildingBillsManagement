@@ -15,16 +15,19 @@ class EntranceAdmin(admin.ModelAdmin):
 
 @admin.register(Apartment)
 class ApartmentAdmin(admin.ModelAdmin):
-    list_display = ('number', 'building', 'entrance', 'floor')
+    list_display = ('number', 'building', 'entrance', 'floor', 'owner_name')
+
+    def owner_name(self, obj):
+        return obj.owner.full_name()
 
 
 @admin.register(Bill)
 class BillAdmin(admin.ModelAdmin):
     list_display = (
     'apartment', 'electricity', 'cleaning', 'elevator_electricity', 'elevator_maintenance', 'entrance_maintenance',
-    'total_bill')
-    list_filter = ('apartment',)
-    search_fields = ('apartment__number',)
+    'total_bill', 'for_month', 'is_paid')
+    list_filter = ('apartment', 'for_month', 'is_paid')
+    search_fields = ('apartment__number', 'for_month', 'is_paid')
 
     def apartment(self, obj):
         return obj.apartment

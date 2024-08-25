@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock title %}
+
+{% block content %}
+    <div class="container mt-3">
+        <h1 class="text-center">All bills for entrance <strong style="color: #3a77d7">{{ entrance }}</strong> in <strong style="color: #3a77d7">{{ month }}</strong></h1>
+    <br>
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>Owner</th>
+                <th>Apartment</th>
+                <th>Electricity</th>
+                <th>Cleaning</th>
+                <th>Elevator Electricity</th>
+                <th>Elevator Maintenance</th>
+                <th>Entrance Maintenance</th>
+                <th>Total Bill</th>
+                <th>Month</th>
+                <th>Is paid</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if bills %}
+                {% for bill in bills %}
+                    <tr>
+                        <td>{{ bill.apartment.owner.full_name }}</td>
+                        <td class="text-center">{{ bill.apartment.number }}</td>
+                        <td class="text-center">{{ bill.electricity }}</td>
+                        <td class="text-center">{{ bill.cleaning }}</td>
+                        <td class="text-center">{{ bill.elevator_electricity }}</td>
+                        <td class="text-center">{{ bill.elevator_maintenance }}</td>
+                        <td class="text-center">{{ bill.entrance_maintenance }}</td>
+                        <td class="text-center">{{ bill.total_bill }}</td>
+                        <td class="text-center">{{ bill.for_month }}</td>
+                        <td class="text-center">{{ bill.is_paid }}</td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <h2 class="text-center" style="color: red">No bills found</h2>
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
