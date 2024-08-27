@@ -101,6 +101,13 @@ def dashboard(request):
             selected_month = now.month - 1
             selected_year = now.year
 
+    if selected_month == 0:
+        selected_month = 12
+        selected_year -= 1
+    elif selected_month == 13:
+        selected_month = 1
+        selected_year += 1
+
     apartment_bills = ApartmentBill.objects.filter(
         apartment__entrance=entrance,
         for_month__month=selected_month,
