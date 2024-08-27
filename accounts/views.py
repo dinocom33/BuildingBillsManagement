@@ -1,6 +1,5 @@
-from calendar import month
-from datetime import datetime
-from lib2to3.fixes.fix_input import context
+from datetime import datetime, timezone
+from dateutil.relativedelta import relativedelta
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
@@ -8,9 +7,10 @@ from django.contrib.messages.context_processors import messages
 from django.shortcuts import render, redirect
 from django.contrib import messages, auth
 
-from building.models import Apartment, Bill, Entrance
+from building.models import Apartment, Bill, Entrance, ApartmentBill
 
 User = get_user_model()
+
 
 def register(request):
     if request.user.is_authenticated:
@@ -46,7 +46,6 @@ def register(request):
 
 
 def login(request):
-
     if request.user.is_authenticated:
         return redirect('index')
 
@@ -82,15 +81,38 @@ def logout(request):
 @login_required
 def dashboard(request):
     user = request.user
-    apartment = Apartment.objects.all().order_by('number')
-    bill = Bill.objects.filter(for_month=datetime.now()).order_by('apartment__number')
-    entrance = user.entrance
-    month = datetime.now().strftime('%B %Y')
+    apartment = Apartment.objects.filter(owner=user).first()
+    entrance = Entrance.objects.filter(name=apartment.entrance).first()
+    apartments = Apartment.objects.filter(entrance=entrance)
+
+    now = datetime.now()
+
+    selected_month = request.GET.get('month')
+    selected_year = request.GET.get('year')
+
+    if selected_month and selected_year:
+        selected_month = int(selected_month)
+        selected_year = int(selected_year)
+    else:
+        if now.month == 1:
+            selected_month = 12
+            selected_year = now.year - 1
+        else:
+            selected_month = now.month - 1
+            selected_year = now.year
+
+    apartment_bills = ApartmentBill.objects.filter(
+        apartment__entrance=entrance,
+        for_month__month=selected_month,
+        for_month__year=selected_year
+    )
 
     context = {
-        'bills': bill,
-        'month': month,
         'entrance': entrance,
+        'apartments': apartments,
+        'bills': apartment_bills,
+        'month': selected_month,
+        'year': selected_year,
     }
 
     return render(request, 'accounts/dashboard.html', context)
