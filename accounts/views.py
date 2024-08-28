@@ -7,7 +7,7 @@ from django.contrib.messages.context_processors import messages
 from django.shortcuts import render, redirect
 from django.contrib import messages, auth
 
-from building.models import Apartment, Bill, Entrance, ApartmentBill
+from building.models import Apartment, Bill, Entrance, ApartmentBill, Building
 
 User = get_user_model()
 
@@ -82,8 +82,9 @@ def logout(request):
 def dashboard(request):
     user = request.user
     apartment = Apartment.objects.filter(owner=user).first()
-    entrance = Entrance.objects.filter(name=apartment.entrance).first()
-    apartments = Apartment.objects.filter(entrance=entrance)
+    building = apartment.building
+    entrance = apartment.entrance
+    apartments = Apartment.objects.filter(building=building, entrance=entrance)
 
     now = datetime.now()
 
@@ -109,6 +110,7 @@ def dashboard(request):
         selected_year += 1
 
     apartment_bills = ApartmentBill.objects.filter(
+        apartment__building=building,
         apartment__entrance=entrance,
         for_month__month=selected_month,
         for_month__year=selected_year

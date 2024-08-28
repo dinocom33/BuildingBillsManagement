@@ -1,0 +1,59 @@
+@media print {
+    /* General print settings */
+    body {
+        margin: 0;
+        padding: 0;
+        font-size: 12px;
+    }
+
+    /* Ensure the table container is visible */
+    #table-container {
+        visibility: visible;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+    }
+
+    /* Hide all other elements */
+    body * {
+        visibility: hidden;
+    }
+
+    #table-container, #table-container * {
+        visibility: visible;
+    }
+
+    /* Hide navigation buttons in print */
+    #navigation-buttons {
+        display: none;
+    }
+
+    /* Adjust table for A4 landscape page size */
+    table {
+        width: 100%;
+        /*border-collapse: collapse;*/
+        border: 2px solid black !important; /* Outer border of the table */
+    }
+
+    tr, th, td {
+        padding: 5px;
+        font-size: 10px;
+        border: 1px solid black !important; /* Border around each cell */
+    }
+
+    th {
+        font-weight: bold;
+    }
+
+    /* Landscape orientation setup */
+    @page {
+        size: A4 landscape; /* Set page size to A4 in landscape mode */
+        margin: 10mm;
+    }
+
+    /* Ensure table fits within the page */
+    table, tr, th, td {
+        page-break-inside: avoid;
+    }
+}

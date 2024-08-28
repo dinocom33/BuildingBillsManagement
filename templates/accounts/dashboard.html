@@ -5,13 +5,13 @@
 {% block title %}Dashboard{% endblock title %}
 
 {% block content %}
-    <div class="table-responsive">
+    <div class="table-responsive" id="table-container">
         <h1 class="text-center">
             All bills for entrance <strong style="color: #3a77d7">{{ entrance }}</strong> in
             <strong style="color: #3a77d7">{{ month|month_name }} {{ year }}</strong>
         </h1>
         <br>
-        <div class="text-center">
+        <div class="text-center" id="navigation-buttons">
             <!-- Navigation Links -->
             <a href="?month={{ month|add:-1 }}&year={{ year }}" class="btn btn-primary">
                 Previous Month
@@ -19,9 +19,12 @@
             <a href="?month={{ month|add:1 }}&year={{ year }}" class="btn btn-primary">
                 Next Month
             </a>
+            <button onclick="window.print()" class="btn btn-secondary" id="print-button">
+                Print Table
+            </button>
         </div>
         <br>
-        <table class="table table-striped table-bordered table-hover">
+        <table class="table table-striped table-bordered table-hover" id="bills-table">
             <thead>
             <tr>
                 <th>Owner</th>
@@ -50,9 +53,9 @@
                         <td class="text-center">{{ bill.total_bill }}</td>
                         <td class="text-center">{{ bill.for_month }}</td>
                         {% if bill.is_paid %}
-                        <td class="text-center" style="color: #1ba87e">Paid</td>
+                            <td class="text-center" style="color: #1ba87e">Paid</td>
                         {% else %}
-                        <td class="text-center" style="color: #CC3434">Not Paid</td>
+                            <td class="text-center" style="color: #CC3434">Not Paid</td>
                         {% endif %}
                     </tr>
                 {% endfor %}
