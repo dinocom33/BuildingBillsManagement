@@ -104,19 +104,18 @@
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            var payModal = document.getElementById('payModal');
+            const payModal = document.getElementById('payModal');
             payModal.addEventListener('show.bs.modal', function (event) {
                 // Button that triggered the modal
-                var button = event.relatedTarget;
+                const button = event.relatedTarget;
                 // Extract bill ID from data-* attribute
-                var billId = button.getAttribute('data-bill-id');
+                const billId = button.getAttribute('data-bill-id');
                 console.log(billId);
                 // Update the form's action URL
-                var form = payModal.querySelector('form');
-                var formAction = form.getAttribute('action').replace('0', billId);
+                const form = payModal.querySelector('form');
+                const formAction = form.getAttribute('action').replace('0', billId);
                 form.setAttribute('action', formAction);
             });
         });
     </script>
-
 {% endblock %}
