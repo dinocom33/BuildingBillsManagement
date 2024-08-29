@@ -35,8 +35,9 @@
                 <th class="text-center">Elevator Maintenance</th>
                 <th class="text-center">Entrance Maintenance</th>
                 <th class="text-center">Total Bill</th>
+                <th class="text-center">Change</th>
                 <th class="text-center">Month</th>
-                <th class="text-center">Is paid</th>
+                <th class="text-center">Paid</th>
             </tr>
             </thead>
             <tbody>
@@ -51,11 +52,12 @@
                         <td class="text-center">{{ bill.elevator_maintenance }}</td>
                         <td class="text-center">{{ bill.entrance_maintenance }}</td>
                         <td class="text-center">{{ bill.total_bill }}</td>
+                        <td class="text-center">{{ bill.change }}</td>
                         <td class="text-center">{{ bill.for_month }}</td>
                         {% if bill.is_paid %}
-                            <td class="text-center" style="color: #1ba87e">Paid</td>
+                            <td class="text-center" style="color: #1ba87e">Yes</td>
                         {% else %}
-                            <td class="text-center" style="color: #CC3434">Not Paid</td>
+                            <td class="text-center" style="color: #CC3434">No</td>
                         {% endif %}
                     </tr>
                 {% endfor %}

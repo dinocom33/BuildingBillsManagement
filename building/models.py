@@ -54,6 +54,7 @@ class ApartmentBill(models.Model):
     elevator_electricity = models.DecimalField(default=0, max_digits=10, decimal_places=2)
     elevator_maintenance = models.DecimalField(default=0, max_digits=10, decimal_places=2)
     entrance_maintenance = models.DecimalField(default=0, max_digits=10, decimal_places=2)
+    change = models.DecimalField(default=0, max_digits=10, decimal_places=2)
     for_month = MonthField('Month', null=True)
     is_paid = models.BooleanField(default=False)
 

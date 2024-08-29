@@ -2,14 +2,25 @@ from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.messages.context_processors import messages
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages, auth
+from django.urls import reverse
 
+from accounts.decorators import group_required
 from building.models import Apartment, Bill, Entrance, ApartmentBill, Building
 
 User = get_user_model()
+
+
+def get_building_entrance_apartments(user):
+    apartment = Apartment.objects.filter(owner=user).first()
+    building = apartment.building
+    entrance = apartment.entrance
+    apartments = Apartment.objects.filter(building=building, entrance=entrance)
+
+    return [apartment, building, entrance, apartments]
 
 
 def register(request):
@@ -125,3 +136,95 @@ def dashboard(request):
     }
 
     return render(request, 'accounts/dashboard.html', context)
+
+
+@login_required
+@group_required('manager')
+def manager_dashboard(request):
+
+    user = request.user
+    apartment, building, entrance, apartments = get_building_entrance_apartments(user)
+
+    now = datetime.now()
+
+    selected_month = request.GET.get('month')
+    selected_year = request.GET.get('year')
+
+    if selected_month and selected_year:
+        selected_month = int(selected_month)
+        selected_year = int(selected_year)
+    else:
+        if now.month == 1:
+            selected_month = 12
+            selected_year = now.year - 1
+        else:
+            selected_month = now.month - 1
+            selected_year = now.year
+
+    if selected_month == 0:
+        selected_month = 12
+        selected_year -= 1
+    elif selected_month == 13:
+        selected_month = 1
+        selected_year += 1
+
+    apartment_bills = ApartmentBill.objects.filter(
+        apartment__building=building,
+        apartment__entrance=entrance,
+        for_month__month=selected_month,
+        for_month__year=selected_year
+    )
+
+    context = {
+        'entrance': entrance,
+        'apartments': apartments,
+        'bills': apartment_bills,
+        'month': selected_month,
+        'year': selected_year,
+    }
+
+    return render(request, 'accounts/manager_dashboard.html', context)
+
+
+@login_required
+@group_required('manager')
+def pay_bill(request, bill_id):
+    if request.method == 'POST':
+
+        apartment_bill = ApartmentBill.objects.get(id=bill_id)
+        given_sum = request.POST.get('sum')
+        month = request.POST.get('month', '')
+        year = request.POST.get('year', '')
+
+        if not given_sum:
+            messages.error(request, 'Sum is required')
+            return redirect(f'{reverse("manager_dashboard")}?month={month}&year={year}')
+
+        given_sum = float(given_sum) + float(apartment_bill.change)
+
+        if given_sum <= 0:
+            messages.error(request, 'Sum must be greater than 0')
+            return redirect(f'{reverse("manager_dashboard")}?month={month}&year={year}')
+
+
+        if given_sum < float(apartment_bill.total_bill()) - 0.001:
+            messages.error(request, 'Sum must be greater than or equal to total bill')
+            return redirect(f'{reverse("manager_dashboard")}?month={month}&year={year}')
+
+        if apartment_bill.is_paid:
+            messages.error(request, 'Bill already paid')
+            return redirect(f'{reverse("manager_dashboard")}?month={month}&year={year}')
+
+
+        if given_sum >= apartment_bill.total_bill():
+            apartment_bill.change = given_sum - float(apartment_bill.total_bill())
+        else:
+            apartment_bill.change = 0
+
+        apartment_bill.is_paid = True
+        apartment_bill.save()
+
+        messages.success(request, 'Bill paid successfully')
+
+        return redirect(f'{reverse("manager_dashboard")}?month={month}&year={year}')
+    return render(request, 'accounts/manager_dashboard.html')

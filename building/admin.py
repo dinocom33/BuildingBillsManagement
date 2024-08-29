@@ -35,7 +35,7 @@ class BillAdmin(admin.ModelAdmin):
 @admin.register(ApartmentBill)
 class ApartmentBillAdmin(admin.ModelAdmin):
     list_display = ('apartment', 'owner_name', 'electricity', 'elevator_electricity', 'cleaning', 'elevator_maintenance',
-                    'entrance_maintenance', 'total_bill', 'for_month', 'is_paid')
+                    'entrance_maintenance', 'total_bill', 'change', 'for_month', 'is_paid')
     list_filter = ('apartment', 'for_month', 'is_paid')
     search_fields = ('apartment__number', 'apartment__owner__first_name', 'apartment__owner__last_name')
     list_display_links = ('apartment', 'owner_name')

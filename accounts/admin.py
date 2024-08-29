@@ -51,7 +51,7 @@ class CustomUserAdmin(UserAdmin):
     add_form = CustomUserCreationForm
     form = CustomUserChangeForm
     model = User
-    list_display = ("full_name", "email", "is_staff", "is_active",)
+    list_display = ("full_name", "email", "get_groups", "is_staff", "is_active",)
     list_filter = ("email", "is_staff", "is_active",)
     list_display_links = ("full_name", "email",)
     fieldsets = (
@@ -73,6 +73,11 @@ class CustomUserAdmin(UserAdmin):
 
     def full_name(self, obj):
         return f"{obj.first_name} {obj.last_name}"
+
+    def get_groups(self, obj):
+        return ", ".join([group.name for group in obj.groups.all()])
+
+    get_groups.short_description = 'Groups'
 
 
 admin.site.register(User, CustomUserAdmin)

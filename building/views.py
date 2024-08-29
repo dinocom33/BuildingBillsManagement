@@ -23,11 +23,28 @@ def create_bill(request):
             total_entrance_maintenance=float(total_entrance_maintenance),
         )
 
-        apartments = Apartment.objects.filter(entrance=request.user.owner.filter(entrance__isnull=False).first().entrance)
+        # Get apartments associated with the user's entrance
+        entrance = request.user.owner.filter(entrance__isnull=False).first().entrance
+        apartments = Apartment.objects.filter(entrance=entrance)
+
         for apartment in apartments:
+            # Get the last ApartmentBill record for the apartment
+            last_bill = ApartmentBill.objects.filter(apartment=apartment).last()
+
+            if last_bill is None:
+                last_change = 0
+            else:
+                last_change = last_bill.change
+
+                # Set the last change to zero for the last bill after transferring it
+                last_bill.change = 0
+                last_bill.save()
+
+            # Create a new ApartmentBill for the current month
             ApartmentBill.objects.create(
                 apartment=apartment,
                 for_month=for_month,
+                change=last_change,
                 electricity=float(total_electricity) / len(apartments),
                 cleaning=float(total_cleaning) / len(apartments),
                 elevator_electricity=float(total_elevator_electricity) / len(apartments),
@@ -39,3 +56,4 @@ def create_bill(request):
         return redirect('create_bill')
 
     return render(request, 'building/create_bill.html')
+
