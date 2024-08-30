@@ -120,8 +120,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 60 * 60
 SESSION_SAVE_EVERY_REQUEST = True
 
-CELERY_BROKER_URL = 'rediss://red-cr8sbtij1k6c73f89860:pykckpx7kkojWVFxbC9f3UZjdVqROMqC@frankfurt-redis.render.com:6379'
-# CELERY_RESULT_BACKEND = 'rediss://red-cr8sbtij1k6c73f89860:pykckpx7kkojWVFxbC9f3UZjdVqROMqC@frankfurt-redis.render.com:6379'
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', None)
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
