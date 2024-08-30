@@ -49,7 +49,7 @@ def create_bill(request):
             )
 
             send_email_task.delay(
-                subject='You have a new bill for your apartment',
+                subject=f'You have a new bill for your apartment {apartment_bill.apartment.number}',
                 message=f'You have a new bill for apartment {apartment_bill.apartment.number}, '
                         f'for the month {for_month} as follows: \n'
                         f'Electricity: {apartment_bill.electricity:.2f}lv \n'
