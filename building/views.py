@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
+from .tasks import send_email_task
 
 from building.models import Building, Bill, Apartment, Entrance, ApartmentBill
 
@@ -23,25 +24,20 @@ def create_bill(request):
             total_entrance_maintenance=float(total_entrance_maintenance),
         )
 
-        # Get apartments associated with the user's entrance
         entrance = request.user.owner.filter(entrance__isnull=False).first().entrance
         apartments = Apartment.objects.filter(entrance=entrance)
 
         for apartment in apartments:
-            # Get the last ApartmentBill record for the apartment
             last_bill = ApartmentBill.objects.filter(apartment=apartment).last()
 
             if last_bill is None:
                 last_change = 0
             else:
                 last_change = last_bill.change
-
-                # Set the last change to zero for the last bill after transferring it
                 last_bill.change = 0
                 last_bill.save()
 
-            # Create a new ApartmentBill for the current month
-            ApartmentBill.objects.create(
+            apartment_bill = ApartmentBill.objects.create(
                 apartment=apartment,
                 for_month=for_month,
                 change=last_change,
@@ -52,8 +48,21 @@ def create_bill(request):
                 entrance_maintenance=float(total_entrance_maintenance) / len(apartments),
             )
 
+            send_email_task.delay(
+                subject='You have a new bill for your apartment',
+                message=f'You have a new bill for apartment {apartment_bill.apartment.number}, '
+                        f'for the month {for_month} as follows: \n'
+                        f'Electricity: {apartment_bill.electricity:.2f}lv \n'
+                        f'Cleaning: {apartment_bill.cleaning:.2f}lv \n'
+                        f'Elevator electricity: {apartment_bill.elevator_electricity:.2f}lv \n'
+                        f'Elevator maintenance: {apartment_bill.elevator_maintenance:.2f}lv \n'
+                        f'Entrance maintenance: {apartment_bill.entrance_maintenance:.2f}lv \n'
+                        f'Total sum: {apartment_bill.total_bill():.2f}lv',
+                from_email='mycookbook787@gmail.com',
+                recipient_list=[apartment.owner.email],
+            )
+
         messages.success(request, 'Bill created successfully')
         return redirect('create_bill')
 
     return render(request, 'building/create_bill.html')
-

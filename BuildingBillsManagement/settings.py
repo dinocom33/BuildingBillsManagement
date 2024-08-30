@@ -108,6 +108,21 @@ MESSAGE_TAGS = {
     messages.ERROR: 'danger',
 }
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.getenv('EMAIL_HOST', None)
+EMAIL_USE_TLS = bool(int(os.getenv('EMAIL_USE_TLS', 0)))
+EMAIL_PORT = os.getenv('EMAIL_PORT', 0)
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', None)
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', None)
+CONTACT_FORM_EMAIL = os.getenv('CONTACT_FORM_EMAIL', None)
+
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 60 * 60
 SESSION_SAVE_EVERY_REQUEST = True
+
+CELERY_BROKER_URL = 'rediss://red-cr8sbtij1k6c73f89860:pykckpx7kkojWVFxbC9f3UZjdVqROMqC@frankfurt-redis.render.com:6379'
+# CELERY_RESULT_BACKEND = 'rediss://red-cr8sbtij1k6c73f89860:pykckpx7kkojWVFxbC9f3UZjdVqROMqC@frankfurt-redis.render.com:6379'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Europe/Sofia'

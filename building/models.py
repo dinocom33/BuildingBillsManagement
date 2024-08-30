@@ -59,7 +59,7 @@ class ApartmentBill(models.Model):
     is_paid = models.BooleanField(default=False)
 
     class Meta:
-        ordering = ['apartment__number']
+        ordering = ['-for_month', 'apartment']
 
     def __str__(self):
         return str(self.for_month)
@@ -77,6 +77,13 @@ class Bill(models.Model):
     total_elevator_electricity = models.DecimalField(default=0, max_digits=10, decimal_places=2)
     total_elevator_maintenance = models.DecimalField(default=0, max_digits=10, decimal_places=2)
     total_entrance_maintenance = models.DecimalField(default=0, max_digits=10, decimal_places=2)
+    for_month = MonthField('Month', null=True)
+
+    class Meta:
+        ordering = ['-for_month']
+
+    def __unicode__(self):
+        return unicode(self.for_month)
 
     def __str__(self):
         return str(self.total_electricity)

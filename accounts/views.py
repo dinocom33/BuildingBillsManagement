@@ -9,7 +9,8 @@ from django.contrib import messages, auth
 from django.urls import reverse
 
 from accounts.decorators import group_required
-from building.models import Apartment, Bill, Entrance, ApartmentBill, Building
+from building.models import Apartment, ApartmentBill
+from .tasks import send_email_task
 
 User = get_user_model()
 
@@ -225,6 +226,20 @@ def pay_bill(request, bill_id):
         apartment_bill.save()
 
         messages.success(request, 'Bill paid successfully')
+
+        send_email_task.delay(
+            subject='You paid a bill',
+            message=f'You have paid a bill for apartment {apartment_bill.apartment.number} as follows: \n'
+                    f'Electricity: {apartment_bill.electricity:.2f}lv \n'
+                    f'Cleaning: {apartment_bill.cleaning:.2f}lv \n'
+                    f'Elevator electricity: {apartment_bill.elevator_electricity:.2f}lv \n'
+                    f'Elevator maintenance: {apartment_bill.elevator_maintenance:.2f}lv \n'
+                    f'Entrance maintenance: {apartment_bill.entrance_maintenance:.2f}lv \n'
+                    f'Total sum: {apartment_bill.total_bill():.2f}lv \n'
+                    f'Change: {apartment_bill.change:.2f}lv',
+            from_email='mycookbook787@gmail.com',
+            recipient_list=[apartment_bill.apartment.owner.email],
+        )
 
         return redirect(f'{reverse("manager_dashboard")}?month={month}&year={year}')
     return render(request, 'accounts/manager_dashboard.html')

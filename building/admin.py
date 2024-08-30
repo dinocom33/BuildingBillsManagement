@@ -28,8 +28,11 @@ class ApartmentAdmin(admin.ModelAdmin):
 @admin.register(Bill)
 class BillAdmin(admin.ModelAdmin):
     list_display = (
-        'total_electricity', 'total_cleaning', 'total_elevator_electricity', 'total_elevator_maintenance',
+        'for_month', 'total_electricity', 'total_cleaning', 'total_elevator_electricity', 'total_elevator_maintenance',
         'total_entrance_maintenance')
+    list_filter = ('for_month',)
+    search_fields = ('for_month',)
+    list_display_links = ('for_month', 'total_electricity')
 
 
 @admin.register(ApartmentBill)
