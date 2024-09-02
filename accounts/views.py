@@ -1,16 +1,23 @@
-from datetime import datetime, timezone
-from dateutil.relativedelta import relativedelta
+from datetime import datetime
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.decorators import login_required
 from django.contrib.messages.context_processors import messages
-from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.sites.shortcuts import get_current_site
+from django.core.mail import send_mail
+from django.core.mail import EmailMessage
+from django.shortcuts import render, redirect
 from django.contrib import messages, auth
+from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
+from BuildingBillsManagement import settings
 from accounts.decorators import group_required
 from building.models import Apartment, ApartmentBill
 from .tasks import send_email_task
+from .tokens import generate_token
 
 User = get_user_model()
 
@@ -24,10 +31,9 @@ def get_building_entrance_apartments(user):
     return [apartment, building, entrance, apartments]
 
 
+@login_required
+@group_required('manager')
 def register(request):
-    if request.user.is_authenticated:
-        return redirect('index')
-
     if request.method == 'POST':
 
         first_name = request.POST['first_name']
@@ -38,23 +44,67 @@ def register(request):
 
         if not first_name or not last_name or not email or not password or not password2:
             messages.error(request, 'All fields are required')
-            return redirect('register')
+            return redirect('create_resident')
 
         if User.objects.filter(email=email).exists():
             messages.error(request, 'Email already exists')
-            return redirect('register')
+            return redirect('create_resident')
 
         if password != password2:
             messages.error(request, 'Passwords do not match')
-            return redirect('register')
+            return redirect('create_resident')
 
         new_user = User.objects.create_user(first_name=first_name, last_name=last_name, email=email, password=password)
 
+        new_user.is_active = False
         new_user.save()
-        messages.success(request, 'Account created successfully')
-        return redirect('login')
+
+        # subject = "Welcome to Our Building Bills Management System"
+        # message = f"Hello {new_user.first_name}!\n\nThank you for registering on our website. Please confirm your email address to activate your account.\n\nRegards,\nThe Django Team"
+        from_email = settings.EMAIL_HOST_USER
+        to_list = [new_user.email]
+        # send_mail(subject, message, from_email, to_list, fail_silently=True)
+        # Send email confirmation link
+        current_site = get_current_site(request)
+        email_subject = "You are invited to join Building Bills Management System"
+        message2 = render_to_string('email_confirmation.html', {
+            'name': f'{new_user.first_name} {new_user.last_name}',
+            'domain': current_site.domain,
+            'uid': urlsafe_base64_encode(force_bytes(new_user.pk)),
+            'token': generate_token.make_token(new_user)
+        })
+        email = EmailMessage(
+            email_subject,
+            message2,
+            settings.EMAIL_HOST_USER,
+            [new_user.email],
+        )
+        send_mail(email_subject, message2, from_email, to_list, fail_silently=True)
+
+
+        messages.success(request, 'Account created successfully. Email has been sent with confirmation link')
+        return redirect('create_resident')
+
 
     return render(request, 'accounts/register.html')
+
+
+def activate(request,uidb64,token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        myuser = User.objects.get(pk=uid)
+    except (TypeError,ValueError,OverflowError,User.DoesNotExist):
+        myuser = None
+
+    if myuser is not None and generate_token.check_token(myuser,token):
+        myuser.is_active = True
+        # user.profile.signup_confirmation = True
+        myuser.save()
+        login(request)
+        messages.success(request, "Your Account has been activated!!")
+        return redirect('login')
+    else:
+        return render(request,'activation_failed.html')
 
 
 def login(request):
@@ -221,7 +271,6 @@ def pay_bill(request, bill_id):
             messages.error(request, 'Sum must be greater than 0')
             return redirect(f'{reverse("manager_dashboard")}?month={month}&year={year}')
 
-
         if given_sum < float(apartment_bill.total_bill()) - 0.001:
             messages.error(request, 'Sum must be greater than or equal to total bill')
             return redirect(f'{reverse("manager_dashboard")}?month={month}&year={year}')
@@ -229,7 +278,6 @@ def pay_bill(request, bill_id):
         if apartment_bill.is_paid:
             messages.error(request, 'Bill already paid')
             return redirect(f'{reverse("manager_dashboard")}?month={month}&year={year}')
-
 
         if given_sum >= apartment_bill.total_bill():
             apartment_bill.change = given_sum - float(apartment_bill.total_bill())
