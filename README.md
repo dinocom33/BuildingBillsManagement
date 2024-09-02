@@ -17,6 +17,8 @@ This project is an **Apartment Bill Management System** built using Django, desi
 - Python 3.8+
 - Django 4.0+
 - PostgreSQL (or any other database supported by Django)
+- Celery 5.4.0+
+- Redis 5.0.8+
 
 ### Installation
 
@@ -48,8 +50,10 @@ This project is an **Apartment Bill Management System** built using Django, desi
 6. **Run the Development Server:**
    ```bash
    python manage.py runserver
+   celery -A BuildingBillsManagement worker --pool=solo -l info
    ```
 Now, open your browser and go to http://127.0.0.1:8000/ to access the application.
+First you need to create a ```superuser```. With it you create the first user (who will be a manager) and add a ```manager``` group to him.
 
 ### Usage
  - **Admin Panel:** Accessible at /admin, where managers can manage users, apartments, and billing information.
@@ -61,7 +65,9 @@ Now, open your browser and go to http://127.0.0.1:8000/ to access the applicatio
 ### Project Structure
  - **accounts/:** Contains user authentication, management and dashboards logic.
  - **building/:** Contains the logic related to buildings, entrances, apartments, bills, and other building-related operations.
+ - **pages/:** Common pages(index, about etc.).
  - **templates/:** Contains HTML templates used by the application.
+ - **partials/:** Partial templates(like navbar).
  - **static/:** Contains static files (CSS, JavaScript, images).
  - **media/:** (If used) Contains uploaded files and media.
  - **manage.py:** Django's command-line utility for administrative tasks.
