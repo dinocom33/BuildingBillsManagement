@@ -1,12 +1,61 @@
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
+
+from accounts.decorators import group_required
 from .tasks import send_email_task
 
 from building.models import Building, Bill, Apartment, Entrance, ApartmentBill
 
+User = get_user_model()
 
 @login_required
+@group_required('manager')
+def create_building(request):
+    if request.method == 'POST':
+        number = request.POST['number']
+        address = request.POST['address']
+        building = Building.objects.create(number=number, address=address)
+        return redirect('building:create_entrance')
+    return render(request, 'building/create_building.html')
+
+
+
+@login_required
+@group_required('manager')
+def create_entrance(request):
+    if request.method == 'POST':
+        name = request.POST['name']
+        building = request.POST['building']
+        building_id = Building.objects.filter(number=building).first().id
+        print(building_id)
+        entrance = Entrance.objects.create(name=name, building_id=building_id)
+        return redirect('building:create_entrance')
+
+    return render(request, 'building/create_entrance.html')
+
+
+@login_required
+@group_required('manager')
+def create_apartment(request):
+    if request.method == 'POST':
+        building = request.POST['building']
+        entrance = request.POST['entrance']
+        owner = request.POST['owner']
+        floor = request.POST['floor']
+        number = request.POST['number']
+
+        building_id = Building.objects.filter(number=building).first().id
+        entrance_id = Entrance.objects.filter(name=entrance).first().id
+        owner_id = User.objects.filter(email=owner).first().id
+        apartment = Apartment.objects.create(building_id=building_id, entrance_id=entrance_id, owner_id=owner_id, floor=floor, number=number)
+        return redirect('building:create_apartment')
+
+    return render(request, 'building/create_apartment.html')
+
+@login_required
+@group_required('manager')
 def create_bill(request):
     if request.method == 'POST':
         total_electricity = request.POST['total_electricity']
@@ -22,6 +71,7 @@ def create_bill(request):
             total_elevator_electricity=float(total_elevator_electricity),
             total_elevator_maintenance=float(total_elevator_maintenance),
             total_entrance_maintenance=float(total_entrance_maintenance),
+            for_month=for_month
         )
 
         entrance = request.user.owner.filter(entrance__isnull=False).first().entrance
@@ -50,7 +100,7 @@ def create_bill(request):
 
             send_email_task.delay(
                 subject=f'You have a new bill for your apartment {apartment_bill.apartment.number}',
-                message=f'You have a new bill for apartment {apartment_bill.apartment.number}, '
+                message=f'You have a new bill for apartment {apartment_bill.apartment.number} on {apartment_bill.for_month}, '
                         f'for the month {for_month} as follows: \n'
                         f'Electricity: {apartment_bill.electricity:.2f}lv \n'
                         f'Cleaning: {apartment_bill.cleaning:.2f}lv \n'

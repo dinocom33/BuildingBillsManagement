@@ -20,7 +20,10 @@
                             Manage
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'create_bill' %}">Add bill</a></li>
+                            <li><a class="dropdown-item" href="{% url 'building:create_building' %}">Add building</a></li>
+                            <li><a class="dropdown-item" href="{% url 'building:create_entrance' %}">Add entrance</a></li>
+                            <li><a class="dropdown-item" href="{% url 'building:create_apartment' %}">Add apartment</a></li>
+                            <li><a class="dropdown-item" href="{% url 'building:create_bill' %}">Add bill</a></li>
                             <li><a class="dropdown-item" href="{% url 'manager_dashboard' %}">Manage bills</a></li>
                             <li><a class="dropdown-item" href="#">Add resident</a></li>
                         </ul>

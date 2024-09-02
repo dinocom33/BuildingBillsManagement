@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Add bill{% endblock title %}
+{% block title %}Add apartment{% endblock title %}
 
 {% block content %}
     <section class="mb-5 mt-5 pb-3 pt-4">
@@ -14,64 +14,53 @@
                                 {% include 'partials/_alerts.html' %}
                                 <div class="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1">
 
-                                    <p class="text-center h1 fw-bold mb-5 mx-1 mx-md-4 mt-4">Add bill</p>
+                                    <p class="text-center h1 fw-bold mb-5 mx-1 mx-md-4 mt-4">Add apartment</p>
 
-                                    <form action="{% url 'building:create_bill' %}" method="POST" class="mx-1 mx-md-4">
+                                    <form action="{% url 'building:create_apartment' %}" method="POST" class="mx-1 mx-md-4">
                                         {% csrf_token %}
                                         <div class="d-flex flex-row align-items-center mb-4">
                                             <i class="fas fa-envelope fa-lg me-3 fa-fw"></i>
                                             <div class="form-outline flex-fill mb-0">
-                                                <input name="total_electricity" type="number" step=0.01
-                                                       id="total_electricity"
+                                                <input name="building" type="number" step=0.01
+                                                       id="building"
                                                        class="form-control"
                                                        required/>
-                                                <label class="form-label" for="total_electricity">Electricity</label>
+                                                <label class="form-label" for="building">Building</label>
                                             </div>
 
                                             <i class="fas fa-lock fa-lg me-3 fa-fw"></i>
                                             <div class="form-outline flex-fill mb-0">
-                                                <input name="total_elevator_electricity" type="number" step=0.01
-                                                       id="total_elevator_electricity"
+                                                <input name="entrance" type="text"
+                                                       id="entrance"
                                                        class="form-control" required/>
-                                                <label class="form-label" for="total_elevator_electricity">Elevator
-                                                    electricity</label>
+                                                <label class="form-label" for="entrance">Entrance</label>
                                             </div>
                                         </div>
                                         <div class="d-flex flex-row align-items-center mb-4">
                                             <i class="fas fa-envelope fa-lg me-3 fa-fw"></i>
                                             <div class="form-outline flex-fill mb-0">
-                                                <input name="total_cleaning" type="number" step=0.01 id="total_cleaning"
+                                                <input name="owner" type="email" id="owner"
                                                        class="form-control"
                                                        required/>
-                                                <label class="form-label" for="total_cleaning">Cleaning</label>
+                                                <label class="form-label" for="owner">Owner</label>
                                             </div>
 
                                             <i class="fas fa-lock fa-lg me-3 fa-fw"></i>
                                             <div class="form-outline flex-fill mb-0">
-                                                <input name="total_elevator_maintenance" type="number" step=0.01
-                                                       id="total_elevator_maintenance"
+                                                <input name="floor" type="number"
+                                                       id="floor"
                                                        class="form-control" required/>
-                                                <label class="form-label" for="total_elevator_maintenance">Elevator
-                                                    maintenance</label>
+                                                <label class="form-label" for="floor">Floor</label>
                                             </div>
                                         </div>
                                         <div class="d-flex flex-row align-items-center mb-4">
                                             <i class="fas fa-envelope fa-lg me-3 fa-fw"></i>
                                             <div class="form-outline flex-fill mb-0">
-                                                <input name="total_entrance_maintenance" type="number" step=0.01
-                                                       id="total_entrance_maintenance"
+                                                <input name="number" type="number"
+                                                       id="number"
                                                        class="form-control"
                                                        required/>
-                                                <label class="form-label" for="total_entrance_maintenance">Entrance
-                                                    Maintenance</label>
-                                            </div>
-                                            <div class="form-outline flex-fill mb-0">
-                                                <input name="for_month" type="date" step=0.01
-                                                       id="for_month"
-                                                       class="form-control"
-                                                       required/>
-                                                <label class="form-label" for="for_month">
-                                                    Month</label>
+                                                <label class="form-label" for="number">Number</label>
                                             </div>
                                         </div>
                                         <div class="d-flex justify-content-center mx-4 mb-3 mb-lg-4">

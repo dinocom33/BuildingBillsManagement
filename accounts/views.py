@@ -92,12 +92,6 @@ def logout(request):
 
 @login_required
 def dashboard(request):
-    user = request.user
-    apartment = Apartment.objects.filter(owner=user).first()
-    building = apartment.building
-    entrance = apartment.entrance
-    apartments = Apartment.objects.filter(building=building, entrance=entrance)
-
     now = datetime.now()
 
     selected_month = request.GET.get('month')
@@ -120,6 +114,19 @@ def dashboard(request):
     elif selected_month == 13:
         selected_month = 1
         selected_year += 1
+
+    user = request.user
+    apartment = Apartment.objects.filter(owner=user).first()
+
+    if not apartment:
+        selected_month = now.month - 1
+        selected_year = now.year
+        messages.error(request, 'You have no building, entrance and apartment associated with your account')
+        return render(request, 'accounts/dashboard.html', {'month': selected_month, 'year': selected_year})
+
+    building = apartment.building
+    entrance = apartment.entrance
+    apartments = Apartment.objects.filter(building=building, entrance=entrance)
 
     apartment_bills = ApartmentBill.objects.filter(
         apartment__building=building,
@@ -142,10 +149,6 @@ def dashboard(request):
 @login_required
 @group_required('manager')
 def manager_dashboard(request):
-
-    user = request.user
-    apartment, building, entrance, apartments = get_building_entrance_apartments(user)
-
     now = datetime.now()
 
     selected_month = request.GET.get('month')
@@ -168,6 +171,17 @@ def manager_dashboard(request):
     elif selected_month == 13:
         selected_month = 1
         selected_year += 1
+
+    user = request.user
+    apartment = Apartment.objects.filter(owner=user).first()
+
+    if not apartment:
+        selected_month = now.month - 1
+        selected_year = now.year
+        messages.error(request, 'You have no building, entrance and apartment associated with your account')
+        return render(request, 'accounts/dashboard.html', {'month': selected_month, 'year': selected_year})
+
+    building, entrance, apartments = get_building_entrance_apartments(user)
 
     apartment_bills = ApartmentBill.objects.filter(
         apartment__building=building,
@@ -229,7 +243,7 @@ def pay_bill(request, bill_id):
 
         send_email_task.delay(
             subject='You paid a bill',
-            message=f'You have paid a bill for apartment {apartment_bill.apartment.number} as follows: \n'
+            message=f'You have paid a bill for apartment {apartment_bill.apartment.number} for the month {month} {year} as follows: \n'
                     f'Electricity: {apartment_bill.electricity:.2f}lv \n'
                     f'Cleaning: {apartment_bill.cleaning:.2f}lv \n'
                     f'Elevator electricity: {apartment_bill.elevator_electricity:.2f}lv \n'

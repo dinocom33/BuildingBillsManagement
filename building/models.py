@@ -72,6 +72,8 @@ class ApartmentBill(models.Model):
 
 
 class Bill(models.Model):
+    building = models.ForeignKey(Building, on_delete=models.CASCADE, related_name='bill')
+    entrance = models.ForeignKey(Entrance, on_delete=models.CASCADE, related_name='bill')
     total_electricity = models.DecimalField(default=0, max_digits=10, decimal_places=2)
     total_cleaning = models.DecimalField(default=0, max_digits=10, decimal_places=2)
     total_elevator_electricity = models.DecimalField(default=0, max_digits=10, decimal_places=2)
