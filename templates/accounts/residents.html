@@ -2,21 +2,18 @@
 {% load static %}
 {% load month_tags %}
 
-{% block title %}Apartments{% endblock title %}
+{% block title %}Residents{% endblock title %}
 
 {% block content %}
     <div class="table-responsive" id="table-container">
         <h1 class="text-center">
-            All apartments in entrance <strong style="color: #3a77d7">{{ entrance }}</strong>
+            All residents in entrance <strong style="color: #3a77d7">{{ entrance }}</strong>
         </h1>
         <br>
         <div class="text-center" id="navigation-buttons">
             <!-- Navigation Links -->
-            <a href="{% url 'building:create_apartment' %}" class="btn btn-primary">
-                Add apartment
-            </a>
-            <a href="{% url 'manager_dashboard' %}" class="btn btn-primary">
-                Manager dashboard
+            <a href="{% url 'create_resident' %}" class="btn btn-primary">
+                Add resident
             </a>
         </div>
         <br>
@@ -24,22 +21,22 @@
             {% include 'partials/_alerts.html' %}
             <thead>
             <tr>
+                <th>Name</th>
+                <th class="text-center">Email</th>
                 <th class="text-center">Apartment</th>
-                <th class="text-center">Floor</th>
                 <th class="text-center">Entrance</th>
                 <th class="text-center">Building</th>
-                <th class="text-center">Owner</th>
             </tr>
             </thead>
             <tbody>
             {% if apartments %}
                 {% for apartment in apartments %}
                     <tr>
+                        <td>{{ apartment.owner.full_name }}</td>
+                        <td class="text-center">{{ apartment.owner.email }}</td>
                         <td class="text-center">{{ apartment.number }}</td>
-                        <td class="text-center">{{ apartment.floor }}</td>
-                        <td class="text-center">{{ apartment.entrance }}</td>
-                        <td class="text-center">{{ apartment.building }}</td>
-                        <td class="text-center">{{ apartment.owner.full_name }}</td>
+                        <td class="text-center">{{ entrance }}</td>
+                        <td class="text-center">{{ building }}</td>
                     </tr>
                 {% endfor %}
             {% else %}

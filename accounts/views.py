@@ -305,3 +305,20 @@ def pay_bill(request, bill_id):
 
         return redirect(f'{reverse("manager_dashboard")}?month={month}&year={year}')
     return render(request, 'accounts/manager_dashboard.html')
+
+
+@login_required
+@group_required('manager')
+def residents(request):
+    building = request.user.owner.filter(entrance__isnull=False).first().entrance.building
+    entrance = request.user.owner.filter(entrance__isnull=False).first().entrance
+    all_apartments = entrance.apartments.all()
+    print(all_apartments)
+
+    context = {
+        'apartments': all_apartments,
+        'entrance': entrance,
+        'building': building
+    }
+
+    return render(request, 'accounts/residents.html', context)
