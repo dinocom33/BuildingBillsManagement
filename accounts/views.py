@@ -2,14 +2,16 @@ from datetime import datetime
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import PasswordResetView
 from django.contrib.messages.context_processors import messages
+from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.core.mail import EmailMessage
 from django.shortcuts import render, redirect
 from django.contrib import messages, auth
 from django.template.loader import render_to_string
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
@@ -322,3 +324,13 @@ def residents(request):
     }
 
     return render(request, 'accounts/residents.html', context)
+
+
+class ResetPasswordView(SuccessMessageMixin, PasswordResetView):
+    template_name = 'accounts/password_reset.html'
+    email_template_name = 'accounts/password_reset_email.html'
+    subject_template_name = 'accounts/password_reset_subject'
+    success_message = "We've emailed you instructions for setting your password, " \
+                      "please make sure you've entered the address you registered with, and check your spam folder."
+
+    success_url = reverse_lazy('login')

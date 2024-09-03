@@ -10,6 +10,10 @@ app = Celery('BuildingBillsManagement')
 
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
+app.conf.update(
+    worker_prefetch_multiplier=10
+)
+
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 @app.task(bind=True)
