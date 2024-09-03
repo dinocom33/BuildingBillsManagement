@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 
 from accounts.decorators import group_required
+from accounts.views import get_building_entrance_apartments
 from .tasks import send_email_task
 
 from building.models import Building, Bill, Apartment, Entrance, ApartmentBill
@@ -46,10 +47,16 @@ def create_apartment(request):
         floor = request.POST['floor']
         number = request.POST['number']
 
-        building_id = Building.objects.filter(number=building).first().id
-        entrance_id = Entrance.objects.filter(name=entrance).first().id
-        owner_id = User.objects.filter(email=owner).first().id
-        apartment = Apartment.objects.create(building_id=building_id, entrance_id=entrance_id, owner_id=owner_id, floor=floor, number=number)
+        try:
+            building_id = Building.objects.filter(number=building).first().id
+            entrance = Entrance.objects.filter(name=entrance).first().id
+            print(entrance)
+            owner_id = User.objects.filter(email=owner).first().id
+        except AttributeError:
+            messages.error(request, 'Invalid data')
+            return redirect('building:create_apartment')
+
+        Apartment.objects.create(building_id=building_id, entrance_id=entrance, owner_id=owner_id, floor=floor, number=number)
         return redirect('building:create_apartment')
 
     return render(request, 'building/create_apartment.html')
@@ -116,3 +123,16 @@ def create_bill(request):
         return redirect('create_bill')
 
     return render(request, 'building/create_bill.html')
+
+
+@login_required
+@group_required('manager')
+def apartments(request):
+    entrance = request.user.owner.filter(entrance__isnull=False).first().entrance
+    all_apartments = Apartment.objects.filter(entrance=entrance)
+
+    context = {
+        'apartments': all_apartments,
+        'entrance': entrance
+    }
+    return render(request, 'building/apartments.html', context)

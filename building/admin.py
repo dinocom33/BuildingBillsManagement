@@ -16,13 +16,16 @@ class EntranceAdmin(admin.ModelAdmin):
 @admin.register(Apartment)
 class ApartmentAdmin(admin.ModelAdmin):
     list_display = (
-        'owner_name', 'number', 'building', 'entrance', 'floor'
+        'owner_name', 'owner_email', 'number', 'building', 'entrance', 'floor'
     )
     list_filter = ('owner', 'building', 'floor')
     search_fields = ('number', 'owner__first_name', 'owner__last_name')
 
     def owner_name(self, obj):
         return obj.owner.full_name()
+
+    def owner_email(self, obj):
+        return obj.owner.email
 
 
 @admin.register(Bill)

@@ -28,7 +28,7 @@ def get_building_entrance_apartments(user):
     entrance = apartment.entrance
     apartments = Apartment.objects.filter(building=building, entrance=entrance)
 
-    return [apartment, building, entrance, apartments]
+    return [building, entrance, apartments]
 
 
 @login_required
