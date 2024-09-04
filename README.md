@@ -1,6 +1,6 @@
 # Apartment Bill Management System
 
-This project is an **Apartment Bill Management System** built using Django, designed to help managers handle various aspects of apartment billing and payments. The system allows for the generation and management of utility bills, tracking of payments, and more.
+This project is an **Apartment Bill Management System** built using Django, designed to help managers handle various aspects of apartment billing and payments. The system allows for the generation and management of utility bills, tracking of payments, and more. The manager enters the total bills(electricity, elevator, cleaning etc.) for the entrance and the system automatically distributes them equally between the apartments.
 
 ## Features
 
