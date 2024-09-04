@@ -8,6 +8,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.core.mail import EmailMessage
+from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
 from django.contrib import messages, auth
 from django.template.loader import render_to_string
@@ -107,7 +108,6 @@ def activate(request,uidb64,token):
 
 def login(request):
 
-
     if request.user.is_authenticated:
         return redirect('index')
 
@@ -204,7 +204,20 @@ def dashboard(request):
 
 @login_required(redirect_field_name='next', login_url='login')
 def my_bills(request):
-    return render(request, 'accounts/my_bills.html')
+    user = request.user
+    apartment = Apartment.objects.filter(owner=user).first()
+
+    paginator = Paginator(ApartmentBill.objects.filter(apartment__owner=user), 10)
+
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'bills': page_obj,
+        'apartment': apartment
+    }
+
+    return render(request, 'accounts/my_bills.html', context)
 
 
 @login_required
