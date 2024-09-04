@@ -106,10 +106,14 @@ def activate(request,uidb64,token):
 
 
 def login(request):
+
+
     if request.user.is_authenticated:
         return redirect('index')
 
     if request.method == 'POST':
+        next_url = request.POST.get('next')
+
         email = request.POST['email']
         password = request.POST['password']
 
@@ -125,7 +129,11 @@ def login(request):
 
         auth.login(request, user)
         messages.success(request, 'Login successful')
-        return redirect('index')
+
+        if next_url:
+            return redirect(next_url)
+        else:
+            return redirect('index')
 
     return render(request, 'accounts/login.html')
 
@@ -192,6 +200,11 @@ def dashboard(request):
     }
 
     return render(request, 'accounts/dashboard.html', context)
+
+
+@login_required(redirect_field_name='next', login_url='login')
+def my_bills(request):
+    return render(request, 'accounts/my_bills.html')
 
 
 @login_required
