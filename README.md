@@ -14,8 +14,8 @@ This project is an **Apartment Bill Management System** built using Django, desi
 
 ### Prerequisites
 
-- Python 3.8+
-- Django 4.0+
+- Python 3.11.2+
+- Django 5.0.8+
 - PostgreSQL (or any other database supported by Django)
 - Celery 5.4.0+
 - Redis 5.0.8+
