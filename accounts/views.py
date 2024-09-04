@@ -61,15 +61,11 @@ def register(request):
         new_user.is_active = False
         new_user.save()
 
-        # subject = "Welcome to Our Building Bills Management System"
-        # message = f"Hello {new_user.first_name}!\n\nThank you for registering on our website. Please confirm your email address to activate your account.\n\nRegards,\nThe Django Team"
         from_email = settings.EMAIL_HOST_USER
         to_list = [new_user.email]
-        # send_mail(subject, message, from_email, to_list, fail_silently=True)
-        # Send email confirmation link
         current_site = get_current_site(request)
         email_subject = "You are invited to join Building Bills Management System"
-        message2 = render_to_string('email_confirmation.html', {
+        message = render_to_string('email_confirmation.html', {
             'name': f'{new_user.first_name} {new_user.last_name}',
             'domain': current_site.domain,
             'uid': urlsafe_base64_encode(force_bytes(new_user.pk)),
@@ -77,11 +73,11 @@ def register(request):
         })
         email = EmailMessage(
             email_subject,
-            message2,
+            message,
             settings.EMAIL_HOST_USER,
             [new_user.email],
         )
-        send_mail(email_subject, message2, from_email, to_list, fail_silently=True)
+        send_mail(email_subject, message, from_email, to_list, fail_silently=True)
 
 
         messages.success(request, 'Account created successfully. Email has been sent with confirmation link')
@@ -103,8 +99,8 @@ def activate(request,uidb64,token):
         # user.profile.signup_confirmation = True
         myuser.save()
         login(request)
-        messages.success(request, "Your Account has been activated!!")
-        return redirect('login')
+        messages.success(request, "Your Account has been activated!! Please reset your password to continue")
+        return redirect('password_reset')
     else:
         return render(request,'activation_failed.html')
 
