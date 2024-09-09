@@ -6,7 +6,6 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 
 from accounts.decorators import group_required
-from accounts.views import get_building_entrance_apartments
 from .tasks import create_apartment_bill_task
 
 from building.models import Building, Bill, Apartment, Entrance, ApartmentBill

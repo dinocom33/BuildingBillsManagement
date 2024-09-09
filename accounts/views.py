@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
@@ -15,10 +16,12 @@ from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from unicodedata import decimal
 
 from BuildingBillsManagement import settings
 from accounts.decorators import group_required
 from building.models import Apartment, ApartmentBill
+from building.views import apartments
 from .tasks import send_email_task
 from .tokens import generate_token
 
@@ -80,22 +83,20 @@ def register(request):
         )
         send_mail(email_subject, message, from_email, to_list, fail_silently=True)
 
-
         messages.success(request, 'Account created successfully. Email has been sent with confirmation link')
         return redirect('create_resident')
-
 
     return render(request, 'accounts/register.html')
 
 
-def activate(request,uidb64,token):
+def activate(request, uidb64, token):
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
         myuser = User.objects.get(pk=uid)
-    except (TypeError,ValueError,OverflowError,User.DoesNotExist):
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         myuser = None
 
-    if myuser is not None and generate_token.check_token(myuser,token):
+    if myuser is not None and generate_token.check_token(myuser, token):
         myuser.is_active = True
         # user.profile.signup_confirmation = True
         myuser.save()
@@ -103,11 +104,10 @@ def activate(request,uidb64,token):
         messages.success(request, "Your Account has been activated!! Please reset your password to continue")
         return redirect('password_reset')
     else:
-        return render(request,'activation_failed.html')
+        return render(request, 'activation_failed.html')
 
 
 def login(request):
-
     if request.user.is_authenticated:
         return redirect('index')
 
@@ -128,12 +128,12 @@ def login(request):
             return redirect('login')
 
         auth.login(request, user)
-        messages.success(request, 'Login successful')
+        messages.success(request, f'Welcome back {user.first_name} {user.last_name}')
 
         if next_url:
             return redirect(next_url)
         else:
-            return redirect('index')
+            return redirect('dashboard')
 
     return render(request, 'accounts/login.html')
 
@@ -279,7 +279,6 @@ def manager_dashboard(request):
 @group_required('manager')
 def pay_bill(request, bill_id):
     if request.method == 'POST':
-
         apartment_bill = ApartmentBill.objects.get(id=bill_id)
         given_sum = request.POST.get('sum')
         month = request.POST.get('month', '')
@@ -289,13 +288,13 @@ def pay_bill(request, bill_id):
             messages.error(request, 'Sum is required')
             return redirect(f'{reverse("manager_dashboard")}?month={month}&year={year}')
 
-        given_sum = float(given_sum) + float(apartment_bill.change)
+        given_sum = Decimal(given_sum) + apartment_bill.change
 
         if given_sum <= 0:
             messages.error(request, 'Sum must be greater than 0')
             return redirect(f'{reverse("manager_dashboard")}?month={month}&year={year}')
 
-        if given_sum < float(apartment_bill.total_bill()) - 0.001:
+        if given_sum < apartment_bill.total_bill() - Decimal('0.001'):
             messages.error(request, 'Sum must be greater than or equal to total bill')
             return redirect(f'{reverse("manager_dashboard")}?month={month}&year={year}')
 
@@ -304,12 +303,22 @@ def pay_bill(request, bill_id):
             return redirect(f'{reverse("manager_dashboard")}?month={month}&year={year}')
 
         if given_sum >= apartment_bill.total_bill():
-            apartment_bill.change = given_sum - float(apartment_bill.total_bill())
+            apartment_bill.change = given_sum - apartment_bill.total_bill()
         else:
-            apartment_bill.change = 0
+            apartment_bill.change = Decimal('0.0')
 
         apartment_bill.is_paid = True
         apartment_bill.save()
+
+        if apartment_bill.change > 0:
+            current_month_bill = ApartmentBill.objects.filter(
+                apartment=apartment_bill.apartment,
+                for_month__gt=apartment_bill.for_month
+            ).order_by('for_month').first()
+
+            if current_month_bill:
+                current_month_bill.change += apartment_bill.change
+                current_month_bill.save()
 
         messages.success(request, 'Bill paid successfully')
 

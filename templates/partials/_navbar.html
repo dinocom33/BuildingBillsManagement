@@ -1,38 +1,42 @@
 <nav class="navbar sticky-top navbar-expand-lg bg-body-tertiary">
     <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'index' %}">My Building</a>
+        <a class="navbar-brand" href="{% url 'dashboard' %}">My Building</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo02"
                 aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-auto">
-                <li class="nav-item me-4">
-                    <a class="nav-link active" aria-current="page" href="{% url 'index' %}">Home</a>
-                </li>
-                <li class="nav-item me-4">
-                    <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
-                </li>
-                <li class="nav-item me-4">
-                    <a class="nav-link" href="{% url 'my_bills' %}">My bills</a>
-                </li>
-                {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                           aria-expanded="false">
-                            Manage
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'building:create_building' %}">Add building</a>
-                            </li>
-                            <li><a class="dropdown-item" href="{% url 'building:create_entrance' %}">Add entrance</a>
-                            </li>
-                            <li><a class="dropdown-item" href="{% url 'building:apartments' %}">Apartments</a></li>
-                            <li><a class="dropdown-item" href="{% url 'residents' %}">Residents</a></li>
-                            <li><a class="dropdown-item" href="{% url 'building:create_bill' %}">Add bill</a></li>
-                            <li><a class="dropdown-item" href="{% url 'manager_dashboard' %}">Manage bills</a></li>
-                        </ul>
+                {#                <li class="nav-item me-4">#}
+                {#                    <a class="nav-link active" aria-current="page" href="{% url 'index' %}">Home</a>#}
+                {#                </li>#}
+                {% if request.user.is_authenticated %}
+                    <li class="nav-item me-4">
+                        <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
                     </li>
+                    <li class="nav-item me-4">
+                        <a class="nav-link" href="{% url 'my_bills' %}">My bills</a>
+                    </li>
+                    {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                               aria-expanded="false">
+                                Manage
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'building:create_building' %}">Add
+                                    building</a>
+                                </li>
+                                <li><a class="dropdown-item" href="{% url 'building:create_entrance' %}">Add
+                                    entrance</a>
+                                </li>
+                                <li><a class="dropdown-item" href="{% url 'building:apartments' %}">Apartments</a></li>
+                                <li><a class="dropdown-item" href="{% url 'residents' %}">Residents</a></li>
+                                <li><a class="dropdown-item" href="{% url 'building:create_bill' %}">Add bill</a></li>
+                                <li><a class="dropdown-item" href="{% url 'manager_dashboard' %}">Manage bills</a></li>
+                            </ul>
+                        </li>
+                    {% endif %}
                 {% endif %}
             </ul>
             {% if request.user.is_authenticated %}
