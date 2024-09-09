@@ -53,7 +53,7 @@ This project is an **Apartment Bill Management System** built using Django, desi
    celery -A BuildingBillsManagement worker --pool=solo -l info
    ```
 Now, open your browser and go to http://127.0.0.1:8000/ to access the application.
-First you need to create a ```superuser```. With it you create the first user (who will be a manager) and add a ```manager``` group to him.
+First you need to create a ```superuser```. With it you create the first user (who will be a manager) and add him to ```manager``` group.
 
 ### Usage
  - **Admin Panel:** Accessible at /admin, where managers can manage users, apartments, and billing information.
