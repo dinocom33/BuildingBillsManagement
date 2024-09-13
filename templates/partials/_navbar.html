@@ -17,6 +17,9 @@
                     <li class="nav-item me-4">
                         <a class="nav-link" href="{% url 'my_bills' %}">My bills</a>
                     </li>
+                    <li class="nav-item me-4">
+                        <a class="nav-link" href="{% url 'building:expense_dashboard' %}">Expenses</a>
+                    </li>
                     {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
@@ -33,6 +36,7 @@
                                 <li><a class="dropdown-item" href="{% url 'building:apartments' %}">Apartments</a></li>
                                 <li><a class="dropdown-item" href="{% url 'residents' %}">Residents</a></li>
                                 <li><a class="dropdown-item" href="{% url 'building:create_bill' %}">Add bill</a></li>
+                                <li><a class="dropdown-item" href="{% url 'building:expense_dashboard' %}">Manage Expenses</a></li>
                                 <li><a class="dropdown-item" href="{% url 'manager_dashboard' %}">Manage bills</a></li>
                             </ul>
                         </li>

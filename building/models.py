@@ -1,4 +1,3 @@
-from django.utils import timezone
 from django.contrib.auth import get_user_model
 from month.models import MonthField
 
@@ -89,3 +88,38 @@ class Bill(models.Model):
 
     def __str__(self):
         return str(self.total_electricity)
+
+
+class TotalMaintenanceAmount(models.Model):
+    amount = models.DecimalField(default=0, max_digits=10, decimal_places=2)
+    building = models.ForeignKey(Building, on_delete=models.CASCADE, related_name='total_maintenance_amount')
+    entrance = models.ForeignKey(Entrance, on_delete=models.CASCADE, related_name='total_maintenance_amount')
+    for_month = MonthField('Month', null=True)
+
+    class Meta:
+        ordering = ['-for_month']
+
+    def __unicode__(self):
+        return unicode(self.for_month)
+
+    def __str__(self):
+        return str(self.amount)
+
+
+class Expense(models.Model):
+    building = models.ForeignKey(Building, on_delete=models.CASCADE, related_name='expense')
+    entrance = models.ForeignKey(Entrance, on_delete=models.CASCADE, related_name='expense')
+    maintenance_total_amount = models.ForeignKey(TotalMaintenanceAmount, on_delete=models.CASCADE, related_name='expense')
+    name = models.CharField(max_length=100)
+    cost = models.DecimalField(default=0, max_digits=10, decimal_places=2)
+    description = models.TextField(null=True, blank=True)
+    for_month = MonthField('Month', null=True)
+
+    class Meta:
+        ordering = ['-for_month']
+
+    def __unicode__(self):
+        return unicode(self.for_month)
+
+    def __str__(self):
+        return str(self.name)

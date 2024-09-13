@@ -1,14 +1,18 @@
 import os
+from calendar import month
+from datetime import datetime
+from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
+from django.urls import reverse
 
 from accounts.decorators import group_required
 from .tasks import create_apartment_bill_task
 
-from building.models import Building, Bill, Apartment, Entrance, ApartmentBill
+from building.models import Building, Bill, Apartment, Entrance, ApartmentBill, Expense, TotalMaintenanceAmount
 
 User = get_user_model()
 
@@ -83,6 +87,12 @@ def create_bill(request):
 
         building_id = Building.objects.filter(number=building.number).first().id
         entrance_id = Entrance.objects.filter(name=entrance.name).first().id
+        total_maintenance_amount = TotalMaintenanceAmount.objects.filter(expense__building=building).last()
+
+        if total_maintenance_amount:
+            total_maintenance_amount = total_maintenance_amount
+        else:
+            total_maintenance_amount = 0
 
         if Bill.objects.filter(for_month=for_month, building__id=building_id, entrance__id=entrance_id).exists():
             messages.error(request, 'Bill already exists')
@@ -94,6 +104,14 @@ def create_bill(request):
             total_elevator_electricity=float(total_elevator_electricity),
             total_elevator_maintenance=float(total_elevator_maintenance),
             total_entrance_maintenance=float(total_entrance_maintenance),
+            building_id=building_id,
+            entrance_id=entrance_id,
+            for_month=for_month
+        )
+
+        total_maintenance_amount.amount += Decimal(total_entrance_maintenance)
+        TotalMaintenanceAmount.objects.create(
+            amount=total_maintenance_amount.amount,
             building_id=building_id,
             entrance_id=entrance_id,
             for_month=for_month
@@ -164,3 +182,120 @@ def apartments(request):
         'entrance': entrance
     }
     return render(request, 'building/apartments.html', context)
+
+
+@login_required
+def manage_expenses(request):
+    now = datetime.now()
+
+    selected_month = request.GET.get('month')
+    selected_year = request.GET.get('year')
+
+    if selected_month and selected_year:
+        selected_month = int(selected_month)
+        selected_year = int(selected_year)
+    else:
+        if now.month == 1:
+            selected_month = 12
+            selected_year = now.year - 1
+        else:
+            selected_month = now.month
+            selected_year = now.year
+
+    if selected_month == 0:
+        selected_month = 12
+        selected_year -= 1
+    elif selected_month == 13:
+        selected_month = 1
+        selected_year += 1
+
+    user = request.user
+    building = user.owner.filter(entrance__isnull=False).first().entrance.building
+    entrance = user.owner.filter(entrance__isnull=False).first().entrance
+    total_maintenance_amount = TotalMaintenanceAmount.objects.filter(building=building, entrance=entrance,
+                                                                     for_month__month=selected_month).order_by(
+        '-id').first()
+    expenses = Expense.objects.filter(building=building, entrance=entrance, for_month__month=selected_month).order_by(
+        '-for_month')
+
+    if total_maintenance_amount:
+        total_maintenance_amount = total_maintenance_amount.amount
+    else:
+        total_maintenance_amount = 0
+
+    if request.method == 'POST':
+        name = request.POST['name']
+        cost = request.POST['cost']
+        description = request.POST['description']
+        for_month = request.POST['for_month']
+
+        expense = Expense.objects.create(
+            name=name,
+            cost=float(cost),
+            description=description,
+            building=building,
+            entrance=entrance,
+            for_month=for_month,
+        )
+
+        total_maintenance_amount.amount -= expense.cost
+        total_maintenance_amount.save()
+
+        messages.success(request, 'Expense created successfully')
+        return redirect('building:expense_dashboard', month=selected_month, year=selected_year)
+
+    context = {
+        'total_maintenance_amount': total_maintenance_amount,
+        'month': selected_month,
+        'year': selected_year,
+        'building': building,
+        'entrance': entrance,
+        'expenses': expenses
+    }
+
+    return render(request, 'building/manage_expenses.html', context)
+
+
+@login_required
+@group_required('manager')
+def create_expense(request):
+    if request.method == 'POST':
+        name = request.POST['name']
+        cost = request.POST['cost']
+        description = request.POST['description']
+        for_month = request.POST['for_month']
+        month = request.POST['month']
+        year = request.POST['year']
+
+        user = request.user
+        building = user.owner.filter(entrance__isnull=False).first().entrance.building
+        entrance = user.owner.filter(entrance__isnull=False).first().entrance
+        total_maintenance_amount = TotalMaintenanceAmount.objects.filter(building=building, entrance=entrance).order_by(
+            '-id').first()
+        print(total_maintenance_amount)
+
+        if not total_maintenance_amount:
+            messages.error(request, 'Total maintenance amount not found')
+            return redirect(f'{reverse("building:expense_dashboard")}?month={month}&year={year}')
+
+        total_maintenance_amount = TotalMaintenanceAmount.objects.create(
+            amount=total_maintenance_amount.amount - Decimal(cost),
+            building=building,
+            entrance=entrance,
+            for_month=for_month
+        )
+        total_maintenance_amount.save()
+
+        expense = Expense.objects.create(
+            name=name,
+            cost=float(cost),
+            description=description,
+            building=building,
+            entrance=entrance,
+            for_month=for_month,
+            maintenance_total_amount=total_maintenance_amount
+        )
+
+        messages.success(request, 'Expense created successfully')
+        return redirect(f'{reverse("building:expense_dashboard")}?month={month}&year={year}')
+    return render(request, 'building/manage_expenses.html')

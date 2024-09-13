@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from building.models import Building, Entrance, Apartment, Bill, ApartmentBill
+from building.models import Building, Entrance, Apartment, Bill, ApartmentBill, Expense, TotalMaintenanceAmount
 
 
 @admin.register(Building)
@@ -53,4 +53,25 @@ class ApartmentBillAdmin(admin.ModelAdmin):
         return obj.apartment.owner.full_name()
 
 
-admin.site.site_header = 'Building Management'
+@admin.register(Expense)
+class ExpenseAdmin(admin.ModelAdmin):
+    list_display = ('name', 'cost', 'maintenance_total_amount', 'description', 'for_month', 'building', 'entrance')
+    list_filter = ('for_month', 'building', 'entrance')
+    search_fields = ('name', 'for_month')
+    list_display_links = ('name', 'cost')
+
+
+@admin.register(TotalMaintenanceAmount)
+class TotalMaintenanceAmountAdmin(admin.ModelAdmin):
+    list_display = ('amount', 'for_month', 'building', 'entrance')
+    list_filter = ('building__number', 'entrance__name', 'for_month')
+    search_fields = ('building__number', 'entrance__name', 'for_month')
+    list_display_links = ('amount', 'for_month')
+
+    def building(self, obj):
+        return obj.apartment.building
+
+    def entrance(self, obj):
+        return obj.apartment.entrance
+
+admin.site.site_header = 'Building Management System Admin Panel'
