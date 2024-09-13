@@ -3,6 +3,7 @@ from calendar import month
 from datetime import datetime
 from decimal import Decimal
 
+from dateutil.relativedelta import relativedelta
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
@@ -83,16 +84,23 @@ def create_bill(request):
         total_entrance_maintenance = request.POST['total_entrance_maintenance']
         building = user.owner.filter(entrance__isnull=False).first().entrance.building
         entrance = user.owner.filter(entrance__isnull=False).first().entrance
-        for_month = request.POST['for_month']
+        for_month = request.POST['for_month'].strip()
+        print(for_month)
+
+        try:
+            # Parse the month string (YYYY-MM) to a datetime object
+            current_month = datetime.strptime(for_month[:7], "%Y-%m")
+        except ValueError as e:
+            messages.error(request, f'Invalid month format: {e}')
+            return redirect('building:create_bill')
+
+            # Calculate the next month
+        next_month = current_month + relativedelta(months=1)
+        next_month_str = next_month.strftime("%Y-%m")
+        print(next_month_str)
 
         building_id = Building.objects.filter(number=building.number).first().id
         entrance_id = Entrance.objects.filter(name=entrance.name).first().id
-        total_maintenance_amount = TotalMaintenanceAmount.objects.filter(expense__building=building).last()
-
-        if total_maintenance_amount:
-            total_maintenance_amount = total_maintenance_amount
-        else:
-            total_maintenance_amount = 0
 
         if Bill.objects.filter(for_month=for_month, building__id=building_id, entrance__id=entrance_id).exists():
             messages.error(request, 'Bill already exists')
@@ -109,16 +117,35 @@ def create_bill(request):
             for_month=for_month
         )
 
-        total_maintenance_amount.amount += Decimal(total_entrance_maintenance)
-        TotalMaintenanceAmount.objects.create(
-            amount=total_maintenance_amount.amount,
-            building_id=building_id,
-            entrance_id=entrance_id,
-            for_month=for_month
-        )
+        total_maintenance_amount = TotalMaintenanceAmount.objects.filter(
+            building=building,
+            entrance=entrance,
+            for_month=for_month).order_by(
+            '-id').first()
+
+        if not total_maintenance_amount:
+            TotalMaintenanceAmount.objects.create(
+                amount=Decimal(total_entrance_maintenance),
+                building_id=building_id,
+                entrance_id=entrance_id,
+                for_month=next_month_str,
+            )
+        else:
+            TotalMaintenanceAmount.objects.create(
+                amount=total_maintenance_amount.amount + Decimal(total_entrance_maintenance),
+                building_id=building_id,
+                entrance_id=entrance_id,
+                for_month=next_month_str,
+            )
 
         entrance = request.user.owner.filter(entrance__isnull=False).first().entrance
         apartments = Apartment.objects.filter(entrance=entrance)
+
+        ap_el = float(total_electricity) / len(apartments)
+        ap_clean = float(total_cleaning) / len(apartments)
+        ap_elev_el = float(total_elevator_electricity) / len(apartments)
+        ap_maint = float(total_elevator_maintenance) / len(apartments)
+        entr_maint = float(total_entrance_maintenance) / len(apartments)
 
         for apartment in apartments:
             last_bill = ApartmentBill.objects.filter(apartment=apartment).last()
@@ -130,11 +157,11 @@ def create_bill(request):
                 last_bill.change = 0
                 last_bill.save()
 
-            electricity = float(total_electricity) / len(apartments)
-            cleaning = float(total_cleaning) / len(apartments)
-            elevator_electricity = float(total_elevator_electricity) / len(apartments)
-            elevator_maintenance = float(total_elevator_maintenance) / len(apartments)
-            entrance_maintenance = float(total_entrance_maintenance) / len(apartments)
+            electricity = ap_el
+            cleaning = ap_clean
+            elevator_electricity = ap_elev_el
+            elevator_maintenance = ap_maint
+            entrance_maintenance = entr_maint
 
             email_subject = f'You have a new bill for your apartment {apartment.number}'
             email_message = (
