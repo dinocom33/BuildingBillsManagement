@@ -286,21 +286,21 @@ def pay_bill(request, bill_id):
 
         if not given_sum:
             messages.error(request, 'Sum is required')
-            return redirect(f'{reverse("manager_dashboard")}?month={month}&year={year}')
+            return redirect(f'{reverse("dashboard")}?month={month}&year={year}')
 
         given_sum = Decimal(given_sum) + apartment_bill.change
 
         if given_sum <= 0:
             messages.error(request, 'Sum must be greater than 0')
-            return redirect(f'{reverse("manager_dashboard")}?month={month}&year={year}')
+            return redirect(f'{reverse("dashboard")}?month={month}&year={year}')
 
         if given_sum < apartment_bill.total_bill() - Decimal('0.001'):
             messages.error(request, 'Sum must be greater than or equal to total bill')
-            return redirect(f'{reverse("manager_dashboard")}?month={month}&year={year}')
+            return redirect(f'{reverse("dashboard")}?month={month}&year={year}')
 
         if apartment_bill.is_paid:
             messages.error(request, 'Bill already paid')
-            return redirect(f'{reverse("manager_dashboard")}?month={month}&year={year}')
+            return redirect(f'{reverse("dashboard")}?month={month}&year={year}')
 
         if given_sum >= apartment_bill.total_bill():
             apartment_bill.change = given_sum - apartment_bill.total_bill()
@@ -336,8 +336,8 @@ def pay_bill(request, bill_id):
             recipient_list=[apartment_bill.apartment.owner.email],
         )
 
-        return redirect(f'{reverse("manager_dashboard")}?month={month}&year={year}')
-    return render(request, 'accounts/manager_dashboard.html')
+        return redirect(f'{reverse("dashboard")}?month={month}&year={year}')
+    return render(request, 'accounts/dashboard.html')
 
 
 @login_required

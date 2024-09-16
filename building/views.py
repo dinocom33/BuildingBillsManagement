@@ -10,9 +10,9 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 
 from accounts.decorators import group_required
-from .tasks import create_apartment_bill_task, create_apartment_bills_task
+from .tasks import create_apartment_bills_task
 
-from building.models import Building, Bill, Apartment, Entrance, ApartmentBill, Expense, TotalMaintenanceAmount
+from building.models import Building, Bill, Apartment, Entrance, Expense, TotalMaintenanceAmount
 
 User = get_user_model()
 
@@ -171,7 +171,7 @@ def create_bill(request):
         )
 
         messages.success(request, 'Bill created successfully')
-        return redirect('building:create_bill')
+        return redirect('dashboard')
 
     return render(request, 'building/create_bill.html')
 

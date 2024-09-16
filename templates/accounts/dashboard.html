@@ -40,7 +40,11 @@
                 <th class="text-center">Total Bill</th>
                 <th class="text-center">Change</th>
                 <th class="text-center">Month</th>
-                <th class="text-center">Paid</th>
+                {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
+                    <th class="text-center">Action</th>
+                {% else %}
+                    <th class="text-center">Paid</th>
+                {% endif %}
             </tr>
             </thead>
             <tbody>
@@ -57,10 +61,33 @@
                         <td class="text-center">{{ bill.total_bill }}</td>
                         <td class="text-center">{{ bill.change }}</td>
                         <td class="text-center">{{ bill.for_month }}</td>
-                        {% if bill.is_paid %}
-                            <td class="text-center" style="color: #1ba87e">Yes</td>
+                        {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
+                            {% if not bill.is_paid %}
+                                <td class="text-center">
+                                    <!-- Button trigger modal -->
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                            data-bs-target="#payModal" data-bill-id="{{ bill.id }}">
+                                        Edit
+                                    </button>
+                                </td>
+                            {% else %}
+                                <td class="text-center">
+                                    {% if bill.is_paid %}
+                                        <button class="btn btn-secondary" disabled>Paid</button>
+                                    {% else %}
+                                        <button class="btn btn-primary" data-bs-toggle="modal"
+                                                data-bs-target="#payModal" data-bill-id="{{ bill.id }}">
+                                            Pay
+                                        </button>
+                                    {% endif %}
+                                </td>
+                            {% endif %}
                         {% else %}
-                            <td class="text-center" style="color: #CC3434">No</td>
+                            {% if bill.is_paid %}
+                                <td class="text-center" style="color: #1ba87e">Yes</td>
+                            {% else %}
+                                <td class="text-center" style="color: #CC3434">No</td>
+                            {% endif %}
                         {% endif %}
                     </tr>
                 {% endfor %}
@@ -72,4 +99,46 @@
             </tbody>
         </table>
     </div>
+    <!-- Modal -->
+    <div class="modal fade" id="payModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="payModal">Enter the sum</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" id="payForm" action="{% url 'pay_bill' 0 %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="form-outline flex-fill mb-0">
+                            <input type="hidden" name="month" value="{{ month }}">
+                            <input type="hidden" name="year" value="{{ year }}">
+                            <input name="sum" type="number" step="any" id="sum" class="form-control" required/>
+                            <label class="form-label" for="sum"></label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Pay</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const payModal = document.getElementById('payModal');
+            payModal.addEventListener('show.bs.modal', function (event) {
+                // Button that triggered the modal
+                const button = event.relatedTarget;
+                // Extract bill ID from data-* attribute
+                const billId = button.getAttribute('data-bill-id');
+                console.log(billId);
+                // Update the form's action URL
+                const form = payModal.querySelector('form');
+                const formAction = form.getAttribute('action').replace('0', billId);
+                form.setAttribute('action', formAction);
+            });
+        });
+    </script>
 {% endblock %}
