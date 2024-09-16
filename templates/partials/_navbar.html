@@ -15,9 +15,6 @@
                         <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
                     </li>
                     <li class="nav-item me-4">
-                        <a class="nav-link" href="{% url 'my_bills' %}">My bills</a>
-                    </li>
-                    <li class="nav-item me-4">
                         <a class="nav-link" href="{% url 'building:expense_dashboard' %}">Expenses</a>
                     </li>
                     {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
@@ -43,12 +40,34 @@
                 {% endif %}
             </ul>
             {% if request.user.is_authenticated %}
-                <a href="javascript:{document.getElementById('logout').submit()}" class="btn btn-outline-danger"
-                   type="submit">Logout</a>
-                <form id="logout" method="POST" action="{% url 'logout' %}">
-                    {% csrf_token %}
-                    <input type="hidden">
-                </form>
+                <div class="btn-group">
+                    <button type="button" class="btn dropdown-toggle" style="background-color: #3a77d7; color: white" data-bs-toggle="dropdown"
+                            data-bs-display="static" aria-expanded="false">
+                        {% firstof request.user.full_name request.user.username %}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" type="button">My account</a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'my_bills' %}" type="button">My bills</a>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li class="ps-3 text-center">
+                            <a href="javascript:{document.getElementById('logout').submit()}"
+                               class="btn btn-danger"
+                               type="submit">
+                                Logout
+                            </a>
+                        </li>
+                        <form id="logout" method="POST" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <input type="hidden">
+                        </form>
+                    </ul>
+                </div>
             {% else %}
                 <a href="{% url 'login' %}" class="btn btn-outline-success" type="submit">Login</a>
             {% endif %}
