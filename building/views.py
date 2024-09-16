@@ -10,7 +10,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 
 from accounts.decorators import group_required
-from .tasks import create_apartment_bill_task
+from .tasks import create_apartment_bill_task, create_apartment_bills_task
 
 from building.models import Building, Bill, Apartment, Entrance, ApartmentBill, Expense, TotalMaintenanceAmount
 
@@ -84,19 +84,15 @@ def create_bill(request):
         building = user.owner.filter(entrance__isnull=False).first().entrance.building
         entrance = user.owner.filter(entrance__isnull=False).first().entrance
         for_month = request.POST['for_month'].strip()
-        print(for_month)
 
         try:
-            # Parse the month string (YYYY-MM) to a datetime object
             current_month = datetime.strptime(for_month[:7], "%Y-%m")
         except ValueError as e:
             messages.error(request, f'Invalid month format: {e}')
             return redirect('building:create_bill')
 
-            # Calculate the next month
         next_month = current_month + relativedelta(months=1)
         next_month_str = next_month.strftime("%Y-%m")
-        print(next_month_str)
 
         building_id = Building.objects.filter(number=building.number).first().id
         entrance_id = Entrance.objects.filter(name=entrance.name).first().id
@@ -119,8 +115,8 @@ def create_bill(request):
         total_maintenance_amount = TotalMaintenanceAmount.objects.filter(
             building=building,
             entrance=entrance,
-            for_month=for_month).order_by(
-            '-id').first()
+            for_month=for_month
+        ).order_by('-id').first()
 
         if not total_maintenance_amount:
             total_maintenance_amount = TotalMaintenanceAmount.objects.create(
@@ -137,8 +133,8 @@ def create_bill(request):
             for_month=next_month_str,
         )
 
-        entrance = request.user.owner.filter(entrance__isnull=False).first().entrance
         apartments = Apartment.objects.filter(entrance=entrance)
+        apartments_ids = list(apartments.values_list('id', flat=True))
 
         ap_el = float(total_electricity) / len(apartments)
         ap_clean = float(total_cleaning) / len(apartments)
@@ -146,55 +142,39 @@ def create_bill(request):
         ap_maint = float(total_elevator_maintenance) / len(apartments)
         entr_maint = float(total_entrance_maintenance) / len(apartments)
 
-        for apartment in apartments:
-            last_bill = ApartmentBill.objects.filter(apartment=apartment).last()
+        email_subject_template = 'You have a new bill for your apartment {apartment_number}'
+        email_message_template = (
+            'You have a new bill for apartment {apartment_number} '
+            'for the month {for_month} as follows: \n'
+            'Electricity: {electricity:.2f}lv \n'
+            'Cleaning: {cleaning:.2f}lv \n'
+            'Elevator electricity: {elevator_electricity:.2f}lv \n'
+            'Elevator maintenance: {elevator_maintenance:.2f}lv \n'
+            'Entrance maintenance: {entrance_maintenance:.2f}lv \n'
+            'Total sum: {total:.2f}lv'
+        )
 
-            if last_bill is None:
-                last_change = 0
-            else:
-                last_change = last_bill.change
-                last_bill.change = 0
-                last_bill.save()
+        from_email = os.getenv('EMAIL_HOST_USER')
 
-            electricity = ap_el
-            cleaning = ap_clean
-            elevator_electricity = ap_elev_el
-            elevator_maintenance = ap_maint
-            entrance_maintenance = entr_maint
-
-            email_subject = f'You have a new bill for your apartment {apartment.number}'
-            email_message = (
-                f'You have a new bill for apartment {apartment.number} '
-                f'for the month {for_month} as follows: \n'
-                f'Electricity: {electricity:.2f}lv \n'
-                f'Cleaning: {cleaning:.2f}lv \n'
-                f'Elevator electricity: {elevator_electricity:.2f}lv \n'
-                f'Elevator maintenance: {elevator_maintenance:.2f}lv \n'
-                f'Entrance maintenance: {entrance_maintenance:.2f}lv \n'
-                f'Total sum: {(electricity + cleaning + elevator_electricity + elevator_maintenance + entrance_maintenance):.2f}lv'
-            )
-            from_email = os.getenv('EMAIL_HOST_USER')
-            recipient_list = [apartment.owner.email]
-
-            create_apartment_bill_task.delay(
-                apartment.id,
-                for_month,
-                electricity,
-                cleaning,
-                elevator_electricity,
-                elevator_maintenance,
-                entrance_maintenance,
-                last_change,
-                email_subject,
-                email_message,
-                from_email,
-                recipient_list
-            )
+        # Call the task to create bills for all apartments
+        create_apartment_bills_task.delay(
+            apartments_ids,
+            for_month,
+            ap_el,
+            ap_clean,
+            ap_elev_el,
+            ap_maint,
+            entr_maint,
+            email_subject_template,
+            email_message_template,
+            from_email
+        )
 
         messages.success(request, 'Bill created successfully')
         return redirect('building:create_bill')
 
     return render(request, 'building/create_bill.html')
+
 
 
 @login_required
@@ -242,7 +222,7 @@ def manage_expenses(request):
                                                                      for_month__month=selected_month).order_by(
         '-id').first()
     expenses = Expense.objects.filter(building=building, entrance=entrance, for_month__month=selected_month).order_by(
-        '-for_month')
+        '-id')
 
     if total_maintenance_amount:
         total_maintenance_amount = total_maintenance_amount.amount
@@ -289,13 +269,34 @@ def create_expense(request):
         name = request.POST['name']
         cost = request.POST['cost']
         description = request.POST['description']
-        for_month = request.POST['for_month']
+        for_month = request.POST['for_month']  # Format: 'YYYY-MM-DD'
         month = request.POST['month']
         year = request.POST['year']
 
         user = request.user
         building = user.owner.filter(entrance__isnull=False).first().entrance.building
         entrance = user.owner.filter(entrance__isnull=False).first().entrance
+
+        # Step 1: Parse for_month (YYYY-MM-DD) and get the current date
+        try:
+            # Convert for_month into a datetime object (YYYY-MM-DD format)
+            for_month_date = datetime.strptime(for_month, "%Y-%m-%d")
+
+            # Get the current date
+            current_date = datetime.today()
+
+            # Extract year and month for both dates (ignore the day)
+            current_year_month = current_date.strftime("%Y-%m")
+            for_month_year_month = for_month_date.strftime("%Y-%m")
+        except ValueError as e:
+            messages.error(request, f'Invalid date format: {e}')
+            return redirect(f'{reverse("building:expense_dashboard")}?month={month}&year={year}')
+
+        # Step 2: Check if for_month is not in the current month
+        if for_month_year_month != current_year_month:
+            messages.error(request, 'Expenses for previous or future months cannot be created.')
+            return redirect(f'{reverse("building:expense_dashboard")}?month={month}&year={year}')
+
         total_maintenance_amount = TotalMaintenanceAmount.objects.filter(building=building, entrance=entrance).order_by(
             '-id').first()
 
@@ -303,6 +304,7 @@ def create_expense(request):
             messages.error(request, 'You have no funds')
             return redirect(f'{reverse("building:expense_dashboard")}?month={month}&year={year}')
 
+        # Deduct the cost from the total maintenance amount
         total_maintenance_amount = TotalMaintenanceAmount.objects.create(
             amount=total_maintenance_amount.amount - Decimal(cost),
             building=building,
@@ -311,6 +313,7 @@ def create_expense(request):
         )
         total_maintenance_amount.save()
 
+        # Create the expense record
         expense = Expense.objects.create(
             name=name,
             cost=float(cost),
@@ -323,4 +326,9 @@ def create_expense(request):
 
         messages.success(request, 'Expense created successfully')
         return redirect(f'{reverse("building:expense_dashboard")}?month={month}&year={year}')
+
     return render(request, 'building/manage_expenses.html')
+
+
+
+
