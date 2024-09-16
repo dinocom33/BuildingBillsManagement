@@ -1,5 +1,4 @@
 import os
-from calendar import month
 from datetime import datetime
 from decimal import Decimal
 
@@ -24,7 +23,7 @@ def create_building(request):
     if request.method == 'POST':
         number = request.POST['number']
         address = request.POST['address']
-        building = Building.objects.create(number=number, address=address)
+        Building.objects.create(number=number, address=address)
         return redirect('building:create_entrance')
     return render(request, 'building/create_building.html')
 
@@ -37,7 +36,7 @@ def create_entrance(request):
         building = request.POST['building']
         building_id = Building.objects.filter(number=building).first().id
         print(building_id)
-        entrance = Entrance.objects.create(name=name, building_id=building_id)
+        Entrance.objects.create(name=name, building_id=building_id)
         return redirect('building:create_entrance')
 
     return render(request, 'building/create_entrance.html')
@@ -124,19 +123,19 @@ def create_bill(request):
             '-id').first()
 
         if not total_maintenance_amount:
-            TotalMaintenanceAmount.objects.create(
+            total_maintenance_amount = TotalMaintenanceAmount.objects.create(
                 amount=Decimal(total_entrance_maintenance),
                 building_id=building_id,
                 entrance_id=entrance_id,
-                for_month=next_month_str,
+                for_month=for_month,
             )
-        else:
-            TotalMaintenanceAmount.objects.create(
-                amount=total_maintenance_amount.amount + Decimal(total_entrance_maintenance),
-                building_id=building_id,
-                entrance_id=entrance_id,
-                for_month=next_month_str,
-            )
+
+        TotalMaintenanceAmount.objects.create(
+            amount=total_maintenance_amount.amount + Decimal(total_entrance_maintenance),
+            building_id=building_id,
+            entrance_id=entrance_id,
+            for_month=next_month_str,
+        )
 
         entrance = request.user.owner.filter(entrance__isnull=False).first().entrance
         apartments = Apartment.objects.filter(entrance=entrance)
@@ -299,10 +298,9 @@ def create_expense(request):
         entrance = user.owner.filter(entrance__isnull=False).first().entrance
         total_maintenance_amount = TotalMaintenanceAmount.objects.filter(building=building, entrance=entrance).order_by(
             '-id').first()
-        print(total_maintenance_amount)
 
         if not total_maintenance_amount:
-            messages.error(request, 'Total maintenance amount not found')
+            messages.error(request, 'You have no funds')
             return redirect(f'{reverse("building:expense_dashboard")}?month={month}&year={year}')
 
         total_maintenance_amount = TotalMaintenanceAmount.objects.create(
