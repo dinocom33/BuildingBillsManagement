@@ -16,12 +16,11 @@ from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from unicodedata import decimal
 
 from BuildingBillsManagement import settings
 from accounts.decorators import group_required
 from building.models import Apartment, ApartmentBill
-from building.views import apartments
+from .forms import MyAccountUpdateForm
 from .tasks import send_email_task
 from .tokens import generate_token
 
@@ -109,7 +108,7 @@ def activate(request, uidb64, token):
 
 def login(request):
     if request.user.is_authenticated:
-        return redirect('index')
+        return redirect('dashboard')
 
     if request.method == 'POST':
         next_url = request.POST.get('next')
@@ -136,6 +135,23 @@ def login(request):
             return redirect('dashboard')
 
     return render(request, 'accounts/login.html')
+
+
+@login_required
+def profile(request):
+    form = MyAccountUpdateForm(instance=request.user)
+
+    if request.method == 'POST':
+        form = MyAccountUpdateForm(request.POST, instance=request.user)
+
+        if User.objects.filter(email=request.POST['email']).exists() and request.user.email != request.POST['email']:
+            messages.error(request, 'The Email you entered already exists')
+
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully')
+
+    return render(request, 'accounts/profile.html', {'form': form})
 
 
 @login_required
@@ -220,59 +236,59 @@ def my_bills(request):
     return render(request, 'accounts/my_bills.html', context)
 
 
-@login_required
-@group_required('manager')
-def manager_dashboard(request):
-    now = datetime.now()
-
-    selected_month = request.GET.get('month')
-    selected_year = request.GET.get('year')
-
-    if selected_month and selected_year:
-        selected_month = int(selected_month)
-        selected_year = int(selected_year)
-    else:
-        if now.month == 1:
-            selected_month = 12
-            selected_year = now.year - 1
-        else:
-            selected_month = now.month - 1
-            selected_year = now.year
-
-    if selected_month == 0:
-        selected_month = 12
-        selected_year -= 1
-    elif selected_month == 13:
-        selected_month = 1
-        selected_year += 1
-
-    user = request.user
-    apartment = Apartment.objects.filter(owner=user).first()
-
-    if not apartment:
-        selected_month = now.month - 1
-        selected_year = now.year
-        messages.error(request, 'You have no building, entrance and apartment associated with your account')
-        return render(request, 'accounts/dashboard.html', {'month': selected_month, 'year': selected_year})
-
-    building, entrance, apartments = get_building_entrance_apartments(user)
-
-    apartment_bills = ApartmentBill.objects.filter(
-        apartment__building=building,
-        apartment__entrance=entrance,
-        for_month__month=selected_month,
-        for_month__year=selected_year
-    )
-
-    context = {
-        'entrance': entrance,
-        'apartments': apartments,
-        'bills': apartment_bills,
-        'month': selected_month,
-        'year': selected_year,
-    }
-
-    return render(request, 'accounts/manager_dashboard.html', context)
+# @login_required
+# @group_required('manager')
+# def manager_dashboard(request):
+#     now = datetime.now()
+#
+#     selected_month = request.GET.get('month')
+#     selected_year = request.GET.get('year')
+#
+#     if selected_month and selected_year:
+#         selected_month = int(selected_month)
+#         selected_year = int(selected_year)
+#     else:
+#         if now.month == 1:
+#             selected_month = 12
+#             selected_year = now.year - 1
+#         else:
+#             selected_month = now.month - 1
+#             selected_year = now.year
+#
+#     if selected_month == 0:
+#         selected_month = 12
+#         selected_year -= 1
+#     elif selected_month == 13:
+#         selected_month = 1
+#         selected_year += 1
+#
+#     user = request.user
+#     apartment = Apartment.objects.filter(owner=user).first()
+#
+#     if not apartment:
+#         selected_month = now.month - 1
+#         selected_year = now.year
+#         messages.error(request, 'You have no building, entrance and apartment associated with your account')
+#         return render(request, 'accounts/dashboard.html', {'month': selected_month, 'year': selected_year})
+#
+#     building, entrance, apartments = get_building_entrance_apartments(user)
+#
+#     apartment_bills = ApartmentBill.objects.filter(
+#         apartment__building=building,
+#         apartment__entrance=entrance,
+#         for_month__month=selected_month,
+#         for_month__year=selected_year
+#     )
+#
+#     context = {
+#         'entrance': entrance,
+#         'apartments': apartments,
+#         'bills': apartment_bills,
+#         'month': selected_month,
+#         'year': selected_year,
+#     }
+#
+#     return render(request, 'accounts/manager_dashboard.html', context)
 
 
 @login_required
