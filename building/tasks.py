@@ -1,7 +1,8 @@
-# tasks.py
-
 from celery import shared_task
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+
+from django.conf import settings
 from .models import ApartmentBill, Apartment
 
 
@@ -11,6 +12,7 @@ def create_apartment_bill_task(apartment_id, for_month, total_electricity, total
                                email_message, from_email, recipient_list):
     apartment = Apartment.objects.get(id=apartment_id)
 
+    # Create the bill
     apartment_bill = ApartmentBill.objects.create(
         apartment=apartment,
         for_month=for_month,
@@ -22,19 +24,41 @@ def create_apartment_bill_task(apartment_id, for_month, total_electricity, total
         entrance_maintenance=float(total_entrance_maintenance),
     )
 
-    # Send email asynchronously
-    send_mail(
+    # Define the context to be passed to the HTML template
+    context = {
+        'apartment_number': apartment.number,
+        'for_month': for_month,
+        'electricity': total_electricity,
+        'cleaning': total_cleaning,
+        'elevator_electricity': total_elevator_electricity,
+        'elevator_maintenance': total_elevator_maintenance,
+        'entrance_maintenance': total_entrance_maintenance,
+        'total': total_electricity + total_cleaning + total_elevator_electricity + total_elevator_maintenance + total_entrance_maintenance,
+    }
+
+    # Render the HTML template with context
+    html_email_message = render_to_string('accounts/new_bill_email.html', context)
+
+    # Create the email object
+    email = EmailMultiAlternatives(
         subject=email_subject,
-        message=email_message,
+        body=email_message,  # Fallback plain text version
         from_email=from_email,
-        recipient_list=recipient_list,
+        to=recipient_list,
     )
+
+    # Attach the HTML version
+    email.attach_alternative(html_email_message, "text/html")
+
+    # Send the email
+    email.send()
 
     return apartment_bill.id
 
 
 @shared_task
-def create_apartment_bills_task(apartments_ids, for_month, ap_el, ap_clean, ap_elev_el, ap_maint, entr_maint, email_subject_template, email_message_template, from_email):
+def create_apartment_bills_task(apartments_ids, for_month, ap_el, ap_clean, ap_elev_el, ap_maint, entr_maint,
+                                email_subject_template, email_message_template, from_email):
     for apartment_id in apartments_ids:
         apartment = Apartment.objects.get(id=apartment_id)
         last_bill = ApartmentBill.objects.filter(apartment=apartment).last()

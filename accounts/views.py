@@ -340,7 +340,7 @@ def pay_bill(request, bill_id):
 
         send_email_task.delay(
             subject='You paid a bill',
-            message=f'You have paid a bill for apartment {apartment_bill.apartment.number} for the month {month} {year} as follows: \n'
+            message=f'You have paid a bill for apartment {apartment_bill.apartment.number} for the month {month}/{year} as follows: \n'
                     f'Electricity: {apartment_bill.electricity:.2f}lv \n'
                     f'Cleaning: {apartment_bill.cleaning:.2f}lv \n'
                     f'Elevator electricity: {apartment_bill.elevator_electricity:.2f}lv \n'

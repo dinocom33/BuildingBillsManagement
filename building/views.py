@@ -145,7 +145,7 @@ def create_bill(request):
         email_subject_template = 'You have a new bill for your apartment {apartment_number}'
         email_message_template = (
             'You have a new bill for apartment {apartment_number} '
-            'for the month {for_month} as follows: \n'
+            'for {for_month} as follows: \n'
             'Electricity: {electricity:.2f}lv \n'
             'Cleaning: {cleaning:.2f}lv \n'
             'Elevator electricity: {elevator_electricity:.2f}lv \n'
