@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from decimal import Decimal
 
@@ -85,7 +86,7 @@ def register(request):
         messages.success(request, 'Account created successfully. Email has been sent with confirmation link')
         return redirect('residents')
 
-    return render(request, 'accounts/register.html')
+    return render(request, 'accounts/residents.html')
 
 
 def activate(request, uidb64, token):
@@ -350,6 +351,7 @@ def pay_bill(request, bill_id):
             'entrance_maintenance': apartment_bill.entrance_maintenance,
             'total': apartment_bill.total_bill(),
             'change': apartment_bill.change,
+            'user': apartment_bill.apartment.owner
         }
 
         # Render the HTML email template
@@ -359,7 +361,7 @@ def pay_bill(request, bill_id):
         send_email_task.delay(
             subject='You paid a bill',
             html_content=html_email_content,
-            from_email='mycookbook787@gmail.com',
+            from_email=os.getenv('EMAIL_HOST_USER', None),
             recipient_list=[apartment_bill.apartment.owner.email],
         )
 
@@ -374,7 +376,6 @@ def residents(request):
     building = request.user.owner.filter(entrance__isnull=False).first().entrance.building
     entrance = request.user.owner.filter(entrance__isnull=False).first().entrance
     all_apartments = entrance.apartments.all()
-    print(all_apartments)
 
     context = {
         'apartments': all_apartments,

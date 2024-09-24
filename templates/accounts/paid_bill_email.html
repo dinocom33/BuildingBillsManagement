@@ -45,7 +45,7 @@
 <body>
     <div class="container">
         <h2>Bill Payment Confirmation</h2>
-        <p>Dear Resident,</p>
+        <p>Dear <strong>{{ user.first_name }} {{ user.last_name }}</strong>,</p>
         <p>You have successfully paid the bill for apartment {{ apartment_number }} for the month of {{ month }}/{{ year }}.</p>
         <table>
             <tr>
