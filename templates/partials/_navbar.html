@@ -39,12 +39,13 @@
                 {% endif %}
             </ul>
             {% if request.user.is_authenticated %}
-                <div class="btn-group">
-                    <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown"
-                            data-bs-display="static" aria-expanded="false">
+                <div class="dropdown">
+                    <button data-mdb-button-init data-mdb-ripple-init data-mdb-dropdown-init type="button" 
+                            class="btn btn-outline-secondary dropdown-toggle" data-mdb-toggle="dropdown"
+                            data-bs-display="static" aria-expanded="false" id="dropdownMenuButton">
                         {% firstof request.user.full_name request.user.username %}
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
                         <li>
                             <a class="dropdown-item" href="{% url 'profile' %}" type="button">My Profile</a>
                         </li>
