@@ -12,9 +12,12 @@
 
         <!-- Add Apartment Button -->
         <div class="text-center mb-4" id="navigation-buttons">
-            <a href="{% url 'building:create_apartment' %}" class="btn btn-outline-primary">
-                Add Apartment
-            </a>
+            {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
+                <button type="button" class="btn btn-outline-danger mx-2" data-bs-toggle="modal"
+                        data-bs-target="#addApartmentModal" id="add-apartment">
+                    Add Apartment
+                </button>
+            {% endif %}
         </div>
 
         <!-- Apartments Table -->
@@ -48,6 +51,54 @@
                 {% endif %}
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- Modal for Adding Apartment -->
+    <div class="modal fade" id="addApartmentModal" tabindex="-1" aria-labelledby="addApartmentModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="addApartmentModal">Enter the Apartment Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" action="{% url 'building:create_apartment' %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <input type="hidden" name="month" value="{{ month }}">
+                            <input type="hidden" name="year" value="{{ year }}">
+                            <label for="building" class="form-label">Building</label>
+                            <input name="building" id="building" type="number" step=1
+                                   placeholder="Enter building number" class="form-control" required/>
+                        </div>
+                        <div class="mb-3">
+                            <label for="entrance" class="form-label">Entrance</label>
+                            <input name="entrance" type="text" id="entrance"
+                                   placeholder="Enter entrance number/letter" class="form-control" required/>
+                        </div>
+                        <div class="mb-3">
+                            <label for="floor" class="form-label">Floor</label>
+                            <input name="floor" type="number" id="floor"
+                                   placeholder="Enter floor number" class="form-control" required/>
+                        </div>
+                        <div class="mb-3">
+                            <label for="number" class="form-label">Number</label>
+                            <input name="number" type="number" id="number" step=1
+                                   placeholder="Enter apartment number" class="form-control" required/>
+                        </div>
+                        <div class="mb-3">
+                            <label for="owner" class="form-label">Owner</label>
+                            <input name="owner" type="email" id="owner"
+                                   placeholder="Enter apartment owner" class="form-control" required/>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Add Apartment</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 {% endblock %}

@@ -6,7 +6,7 @@ html, body {
     flex-grow: 1;
 }
 
-footer {
+#main-footer {
     /* Ensures that the footer sticks to the bottom */
     position: relative;
     bottom: 0;

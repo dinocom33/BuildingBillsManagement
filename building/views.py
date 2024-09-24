@@ -66,9 +66,9 @@ def create_apartment(request):
 
         Apartment.objects.create(building_id=building_id, entrance_id=entrance_id, owner_id=owner_id, floor=floor,
                                  number=number)
-        return redirect('building:create_apartment')
+        return redirect('building:apartments')
 
-    return render(request, 'building/create_apartment.html')
+    return render(request, 'building/apartments.html')
 
 
 @login_required

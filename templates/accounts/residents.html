@@ -12,9 +12,12 @@
 
         <!-- Add Resident Button -->
         <div class="text-center mb-4" id="navigation-buttons">
-            <a href="{% url 'create_resident' %}" class="btn btn-outline-primary">
-                Add Resident
-            </a>
+            {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
+                <button type="button" class="btn btn-outline-danger mx-2" data-bs-toggle="modal"
+                        data-bs-target="#addResidentModal" id="add-apartment">
+                    Add Resident
+                </button>
+            {% endif %}
         </div>
 
         <!-- Residents Table -->
@@ -48,6 +51,54 @@
                 {% endif %}
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- Modal for Adding Resident -->
+    <div class="modal fade" id="addResidentModal" tabindex="-1" aria-labelledby="addResidentModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="addResidentModal">Enter the Resident Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" action="{% url 'create_resident' %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <input type="hidden" name="month" value="{{ month }}">
+                            <input type="hidden" name="year" value="{{ year }}">
+                            <label for="first_name" class="form-label">First Name</label>
+                            <input name="first_name" id="first_name" type="text"
+                                   placeholder="Enter resident's first name" class="form-control" required/>
+                        </div>
+                        <div class="mb-3">
+                            <label for="last_name" class="form-label">Last Name</label>
+                            <input name="last_name" type="text" id="last_name"
+                                   placeholder="Enter resident's last name" class="form-control" required/>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input name="email" type="email" id="email"
+                                   placeholder="Enter resident's email" class="form-control" required/>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input name="password" type="password" id="password"
+                                   placeholder="Enter password" class="form-control" required/>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password2" class="form-label">Repeat Password</label>
+                            <input name="password2" type="password" id="password2"
+                                   placeholder="Enter password again" class="form-control" required/>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Add Resident</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 {% endblock %}

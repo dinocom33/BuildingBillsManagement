@@ -49,15 +49,15 @@ def register(request):
 
         if not first_name or not last_name or not email or not password or not password2:
             messages.error(request, 'All fields are required')
-            return redirect('create_resident')
+            return redirect('residents')
 
         if User.objects.filter(email=email).exists():
             messages.error(request, 'Email already exists')
-            return redirect('create_resident')
+            return redirect('residents')
 
         if password != password2:
             messages.error(request, 'Passwords do not match')
-            return redirect('create_resident')
+            return redirect('residents')
 
         new_user = User.objects.create_user(first_name=first_name, last_name=last_name, email=email, password=password)
 
@@ -83,7 +83,7 @@ def register(request):
         send_mail(email_subject, message, from_email, to_list, fail_silently=True)
 
         messages.success(request, 'Account created successfully. Email has been sent with confirmation link')
-        return redirect('create_resident')
+        return redirect('residents')
 
     return render(request, 'accounts/register.html')
 
