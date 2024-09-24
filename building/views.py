@@ -24,8 +24,8 @@ def create_building(request):
         number = request.POST['number']
         address = request.POST['address']
         Building.objects.create(number=number, address=address)
-        return redirect('building:create_entrance')
-    return render(request, 'building/create_building.html')
+        return redirect('building:apartments')
+    return render(request, 'building/apartments.html')
 
 
 @login_required
@@ -37,9 +37,9 @@ def create_entrance(request):
         building_id = Building.objects.filter(number=building).first().id
         print(building_id)
         Entrance.objects.create(name=name, building_id=building_id)
-        return redirect('building:create_entrance')
+        return redirect('building:apartments')
 
-    return render(request, 'building/create_entrance.html')
+    return render(request, 'building/apartments.html')
 
 
 @login_required
