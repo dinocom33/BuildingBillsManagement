@@ -1,0 +1,14 @@
+html, body {
+    height: 100%;
+}
+
+.flex-grow-1 {
+    flex-grow: 1;
+}
+
+footer {
+    /* Ensures that the footer sticks to the bottom */
+    position: relative;
+    bottom: 0;
+    width: 100%;
+}

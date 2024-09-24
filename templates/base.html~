@@ -11,19 +11,11 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <title>My Building | {% block title %}{% endblock %}</title>
 </head>
-
-<body class="d-flex flex-column min-vh-100">
-    {% include 'partials/_navbar.html' %}
-
-    <!-- Main content section -->
-    <main class="flex-grow-1">
-        {% block content %}
-        {% endblock %}
-    </main>
-
-    <!-- Footer -->
-    {% include 'partials/_footer.html' %}
-
-    <script src="{% static 'js/main.js' %} "></script>
+<body>
+{% include 'partials/_navbar.html' %}
+{% block content %}
+{% endblock %}
+{% include 'partials/_footer.html' %}
+<script src="{% static 'js/main.js' %} "></script>
 </body>
 </html>

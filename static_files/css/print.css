@@ -25,8 +25,8 @@
     }
 
     /* Hide navigation buttons in print */
-    #navigation-buttons {
-        display: none;
+    #navigation-buttons, h1 {
+        display: none !important;
     }
 
     /* Adjust table for A4 landscape page size */

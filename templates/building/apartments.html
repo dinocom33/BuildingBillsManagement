@@ -5,46 +5,49 @@
 {% block title %}Apartments{% endblock title %}
 
 {% block content %}
-    <div class="table-responsive" id="table-container">
-        <h1 class="text-center">
-            All apartments in entrance <strong style="color: #3a77d7">{{ entrance }}</strong>
+    <div class="container mt-4" id="table-container">
+        <h1 class="text-center mb-4">
+            All Apartments in Entrance <strong class="text-primary">{{ entrance }}</strong>
         </h1>
-        <br>
-        <div class="text-center" id="navigation-buttons">
-            <!-- Navigation Links -->
-            <a href="{% url 'building:create_apartment' %}" class="btn btn-primary">
-                Add apartment
+
+        <!-- Add Apartment Button -->
+        <div class="text-center mb-4" id="navigation-buttons">
+            <a href="{% url 'building:create_apartment' %}" class="btn btn-outline-primary">
+                Add Apartment
             </a>
         </div>
-        <br>
-        <table class="table table-striped table-bordered table-hover" id="bills-table">
-            {% include 'partials/_alerts.html' %}
-            <thead>
-            <tr>
-                <th class="text-center">Apartment</th>
-                <th class="text-center">Floor</th>
-                <th class="text-center">Entrance</th>
-                <th class="text-center">Building</th>
-                <th class="text-center">Owner</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% if apartments %}
-                {% for apartment in apartments %}
-                    <tr>
-                        <td class="text-center">{{ apartment.number }}</td>
-                        <td class="text-center">{{ apartment.floor }}</td>
-                        <td class="text-center">{{ apartment.entrance }}</td>
-                        <td class="text-center">{{ apartment.building }}</td>
-                        <td class="text-center">{{ apartment.owner.full_name }}</td>
-                    </tr>
-                {% endfor %}
-            {% else %}
+
+        <!-- Apartments Table -->
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered table-hover text-center align-middle">
+                {% include 'partials/_alerts.html' %}
+                <thead class="table-dark">
                 <tr>
-                    <td colspan="10" class="text-center">No apartments found</td>
+                    <th>Apartment</th>
+                    <th>Floor</th>
+                    <th>Entrance</th>
+                    <th>Building</th>
+                    <th>Owner</th>
                 </tr>
-            {% endif %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                {% if apartments %}
+                    {% for apartment in apartments %}
+                        <tr>
+                            <td>{{ apartment.number }}</td>
+                            <td>{{ apartment.floor }}</td>
+                            <td>{{ apartment.entrance }}</td>
+                            <td>{{ apartment.building }}</td>
+                            <td>{{ apartment.owner.full_name }}</td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center">No apartments found</td>
+                    </tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
     </div>
 {% endblock %}
