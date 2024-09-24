@@ -176,7 +176,6 @@ def create_bill(request):
     return render(request, 'building/create_bill.html')
 
 
-
 @login_required
 @group_required('manager')
 def apartments(request):
@@ -328,7 +327,3 @@ def create_expense(request):
         return redirect(f'{reverse("building:expense_dashboard")}?month={month}&year={year}')
 
     return render(request, 'building/manage_expenses.html')
-
-
-
-
