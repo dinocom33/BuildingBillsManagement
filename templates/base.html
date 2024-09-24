@@ -13,17 +13,17 @@
 </head>
 
 <body class="d-flex flex-column min-vh-100">
-    {% include 'partials/_navbar.html' %}
+{% include 'partials/_navbar.html' %}
 
-    <!-- Main content section -->
-    <main class="flex-grow-1">
-        {% block content %}
-        {% endblock %}
-    </main>
+<!-- Main content section -->
+<main class="flex-grow-1">
+    {% block content %}
+    {% endblock %}
+</main>
 
-    <!-- Footer -->
-    {% include 'partials/_footer.html' %}
+<!-- Footer -->
+{% include 'partials/_footer.html' %}
 
-    <script src="{% static 'js/main.js' %} "></script>
+<script src="{% static 'js/main.js' %} "></script>
 </body>
 </html>

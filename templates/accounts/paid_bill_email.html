@@ -1,0 +1,90 @@
+{% autoescape off %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill Payment Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #4CAF50;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #dddddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        .total {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Bill Payment Confirmation</h2>
+        <p>Dear Resident,</p>
+        <p>You have successfully paid the bill for apartment {{ apartment_number }} for the month of {{ month }}/{{ year }}.</p>
+        <table>
+            <tr>
+                <th>Service</th>
+                <th>Amount (lv)</th>
+            </tr>
+            <tr>
+                <td>Electricity</td>
+                <td>{{ electricity|floatformat:2 }} lv</td>
+            </tr>
+            <tr>
+                <td>Cleaning</td>
+                <td>{{ cleaning|floatformat:2 }} lv</td>
+            </tr>
+            <tr>
+                <td>Elevator Electricity</td>
+                <td>{{ elevator_electricity|floatformat:2 }} lv</td>
+            </tr>
+            <tr>
+                <td>Elevator Maintenance</td>
+                <td>{{ elevator_maintenance|floatformat:2 }} lv</td>
+            </tr>
+            <tr>
+                <td>Entrance Maintenance</td>
+                <td>{{ entrance_maintenance|floatformat:2 }} lv</td>
+            </tr>
+            <tr class="total">
+                <td>Total Sum</td>
+                <td>{{ total|floatformat:2 }} lv</td>
+            </tr>
+            <tr class="total">
+                <td>Change</td>
+                <td>{{ change|floatformat:2 }} lv</td>
+            </tr>
+        </table>
+        <p>Thank you for your prompt payment!</p>
+        <p>Sincerely,</p>
+        <p>The Management</p>
+    </div>
+</body>
+</html>
+{% endautoescape %}

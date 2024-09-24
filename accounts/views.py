@@ -338,21 +338,33 @@ def pay_bill(request, bill_id):
 
         messages.success(request, 'Bill paid successfully')
 
+        # Prepare the context for the HTML email
+        context = {
+            'apartment_number': apartment_bill.apartment.number,
+            'month': month,
+            'year': year,
+            'electricity': apartment_bill.electricity,
+            'cleaning': apartment_bill.cleaning,
+            'elevator_electricity': apartment_bill.elevator_electricity,
+            'elevator_maintenance': apartment_bill.elevator_maintenance,
+            'entrance_maintenance': apartment_bill.entrance_maintenance,
+            'total': apartment_bill.total_bill(),
+            'change': apartment_bill.change,
+        }
+
+        # Render the HTML email template
+        html_email_content = render_to_string('accounts/paid_bill_email.html', context)
+
+        # Send the email using the modified send_email_task
         send_email_task.delay(
             subject='You paid a bill',
-            message=f'You have paid a bill for apartment {apartment_bill.apartment.number} for the month {month}/{year} as follows: \n'
-                    f'Electricity: {apartment_bill.electricity:.2f}lv \n'
-                    f'Cleaning: {apartment_bill.cleaning:.2f}lv \n'
-                    f'Elevator electricity: {apartment_bill.elevator_electricity:.2f}lv \n'
-                    f'Elevator maintenance: {apartment_bill.elevator_maintenance:.2f}lv \n'
-                    f'Entrance maintenance: {apartment_bill.entrance_maintenance:.2f}lv \n'
-                    f'Total sum: {apartment_bill.total_bill():.2f}lv \n'
-                    f'Change: {apartment_bill.change:.2f}lv',
+            html_content=html_email_content,
             from_email='mycookbook787@gmail.com',
             recipient_list=[apartment_bill.apartment.owner.email],
         )
 
         return redirect(f'{reverse("dashboard")}?month={month}&year={year}')
+
     return render(request, 'accounts/dashboard.html')
 
 
