@@ -13,14 +13,14 @@
 
         <!-- Navigation Buttons -->
         <div class="text-center mb-4" id="navigation-buttons">
-            <a href="?month={{ month|add:-1 }}&year={{ year }}" class="btn btn-outline-primary mx-2">
+            <a href="?month={{ month|add:-1 }}&year={{ year }}" class="btn btn-outline-primary mx-2 mb-4">
                 Previous Month
             </a>
-            <a href="?month={{ month|add:1 }}&year={{ year }}" class="btn btn-outline-primary mx-2">
+            <a href="?month={{ month|add:1 }}&year={{ year }}" class="btn btn-outline-primary mx-2 mb-4">
                 Next Month
             </a>
             {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
-                <button type="button" class="btn btn-outline-danger mx-2" data-bs-toggle="modal"
+                <button type="button" class="btn btn-outline-danger mx-2 mb-4" data-bs-toggle="modal"
                         data-bs-target="#expenseModal" id="add-expense">
                     Add Expense
                 </button>
@@ -79,17 +79,21 @@
                         <div class="mb-3">
                             <input type="hidden" name="month" value="{{ month }}">
                             <input type="hidden" name="year" value="{{ year }}">
-                            <input name="name" type="text" class="form-control" placeholder="Name" required>
+                            <label for="name" class="form-label">Name</label>
+                            <input name="name" id="name" type="text" class="form-control" placeholder="Enter Name" required>
                         </div>
                         <div class="mb-3">
-                            <textarea name="description" class="form-control" placeholder="Description"></textarea>
+                            <label for="description" class="form-label">Description</label>
+                            <textarea name="description" id="description" class="form-control" placeholder="Enter Description"></textarea>
                         </div>
                         <div class="mb-3">
-                            <input name="cost" type="number" step="any" class="form-control" placeholder="Cost"
+                            <label for="cost" class="form-label">Cost</label>
+                            <input name="cost" type="number" id="cost" step="any" class="form-control" placeholder="Enter Cost"
                                    required>
                         </div>
                         <div class="mb-3">
-                            <input name="for_month" type="date" class="form-control" required>
+                            <label for="for_month" class="form-label">For Month</label>
+                            <input name="for_month" id="for_month" type="date" class="form-control" required>
                         </div>
                     </div>
                     <div class="modal-footer">

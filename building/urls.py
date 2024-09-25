@@ -12,4 +12,5 @@ urlpatterns = [
     path('apartments/', views.apartments, name='apartments'),
     path('expense_dashboard/', views.manage_expenses, name='expense_dashboard'),
     path('create_expense/', views.create_expense, name='create_expense'),
+    path('bills/', views.bills, name='bills'),
 ]

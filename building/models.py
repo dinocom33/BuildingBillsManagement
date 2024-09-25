@@ -83,6 +83,10 @@ class Bill(models.Model):
     class Meta:
         ordering = ['-for_month']
 
+    def total_bill(self):
+        return (self.total_electricity + self.total_cleaning + self.total_elevator_electricity
+                + self.total_elevator_maintenance + self.total_entrance_maintenance)
+
     def __unicode__(self):
         return unicode(self.for_month)
 
@@ -109,7 +113,8 @@ class TotalMaintenanceAmount(models.Model):
 class Expense(models.Model):
     building = models.ForeignKey(Building, on_delete=models.CASCADE, related_name='expense')
     entrance = models.ForeignKey(Entrance, on_delete=models.CASCADE, related_name='expense')
-    maintenance_total_amount = models.ForeignKey(TotalMaintenanceAmount, on_delete=models.CASCADE, related_name='expense')
+    maintenance_total_amount = models.ForeignKey(TotalMaintenanceAmount, on_delete=models.CASCADE,
+                                                 related_name='expense')
     name = models.CharField(max_length=100)
     cost = models.DecimalField(default=0, max_digits=10, decimal_places=2)
     description = models.TextField(null=True, blank=True)

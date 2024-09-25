@@ -6,6 +6,7 @@ from dateutil.relativedelta import relativedelta
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
 from django.urls import reverse
 
@@ -89,7 +90,7 @@ def create_bill(request):
             current_month = datetime.strptime(for_month[:7], "%Y-%m")
         except ValueError as e:
             messages.error(request, f'Invalid month format: {e}')
-            return redirect('building:create_bill')
+            return redirect('building:bills')
 
         next_month = current_month + relativedelta(months=1)
         next_month_str = next_month.strftime("%Y-%m")
@@ -99,7 +100,7 @@ def create_bill(request):
 
         if Bill.objects.filter(for_month=for_month, building__id=building_id, entrance__id=entrance_id).exists():
             messages.error(request, 'Bill already exists')
-            return redirect('building:create_bill')
+            return redirect('building:bills')
 
         Bill.objects.create(
             total_electricity=float(total_electricity),
@@ -171,9 +172,9 @@ def create_bill(request):
         )
 
         messages.success(request, 'Bill created successfully')
-        return redirect('dashboard')
+        return redirect('building:bills')
 
-    return render(request, 'building/create_bill.html')
+    return render(request, 'building/bills.html')
 
 
 @login_required
@@ -354,3 +355,24 @@ def create_expense(request):
         return redirect(f'{reverse("building:expense_dashboard")}?month={month}&year={year}')
 
     return render(request, 'building/manage_expenses.html')
+
+
+@login_required
+@group_required('manager')
+def bills(request):
+    user = request.user
+    building = user.owner.filter(entrance__isnull=False).first().entrance.building
+    entrance = user.owner.filter(entrance__isnull=False).first().entrance
+    all_bills = Bill.objects.filter(building=building, entrance=entrance).order_by('-for_month')
+
+    paginator = Paginator(all_bills, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'building': building,
+        'entrance': entrance,
+        'bills': page_obj
+    }
+
+    return render(request, 'building/bills.html', context)

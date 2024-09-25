@@ -128,3 +128,5 @@ CELERY_TIMEZONE = 'Europe/Sofia'
 
 
 LOGIN_URL = '/accounts/login/'
+
+# CSRF_TRUSTED_ORIGINS = ['https://11ab-78-90-113-174.ngrok-free.app']
