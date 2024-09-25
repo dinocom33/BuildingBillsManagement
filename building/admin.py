@@ -5,12 +5,25 @@ from building.models import Building, Entrance, Apartment, Bill, ApartmentBill, 
 
 @admin.register(Building)
 class BuildingAdmin(admin.ModelAdmin):
-    list_display = ('number', 'address')
+    list_display = ('number', 'address', 'entrances', 'apartments')
+    search_fields = ('number', 'address')
+    list_filter = ('number', 'address')
+
+    def entrances(self, obj):
+        return obj.entrance_set.count()
+
+    def apartments(self, obj):
+        return obj.apartments.count()
 
 
 @admin.register(Entrance)
 class EntranceAdmin(admin.ModelAdmin):
-    list_display = ('name', 'building')
+    list_display = ('name', 'building', 'apartments')
+    list_filter = ('name', 'building')
+    search_fields = ('name', 'building__number')
+
+    def apartments(self, obj):
+        return obj.apartments.count()
 
 
 @admin.register(Apartment)

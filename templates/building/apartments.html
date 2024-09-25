@@ -27,6 +27,34 @@
                 </button>
             {% endif %}
         </div>
+        <!-- Filter Form -->
+{#        <form method="get" class="text-center mb-4" >#}
+{#            <div class="row justify-content-center">#}
+{#                <div class="col-md-2">#}
+{#                    <label for="building" class="form-label">Select Building</label>#}
+{#                    <select name="building" id="building" class="form-control">#}
+{#                        <option value="">All Buildings</option>#}
+{#                        {% for building in buildings %}#}
+{#                            <option value="{{ building.id }}"#}
+{#                                    {% if request.GET.building == building.id|stringformat:"s" %}selected{% endif %}>{{ building.number }}</option>#}
+{#                        {% endfor %}#}
+{#                    </select>#}
+{#                </div>#}
+{#                <div class="col-md-2">#}
+{#                    <label for="entrance" class="form-label">Select Entrance</label>#}
+{#                    <select name="entrance" id="entrance" class="form-control">#}
+{#                        <option value="">All Entrances</option>#}
+{#                        {% for entrance in entrances %}#}
+{#                            <option value="{{ entrance.id }}"#}
+{#                                    {% if request.GET.entrance == entrance.id|stringformat:"s" %}selected{% endif %}>{{ entrance.name }}</option>#}
+{#                        {% endfor %}#}
+{#                    </select>#}
+{#                </div>#}
+{#            </div>#}
+{#            <div class="text-center mt-3">#}
+{#                <button type="submit" class="btn btn-outline-primary">Filter</button>#}
+{#            </div>#}
+{#        </form>#}
 
         <!-- Apartments Table -->
         <div class="table-responsive">
@@ -172,7 +200,7 @@
                         </div>
                     </div>
                 </form>
+            </div>
         </div>
-    </div>
     </div>
 {% endblock %}

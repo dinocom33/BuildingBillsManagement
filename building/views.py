@@ -179,14 +179,46 @@ def create_bill(request):
 @login_required
 @group_required('manager')
 def apartments(request):
-    entrance = request.user.owner.filter(entrance__isnull=False).first().entrance
-    all_apartments = Apartment.objects.filter(entrance=entrance)
+    # Get all entrances associated with the user
+    entrances = request.user.owner.filter(entrance__isnull=False).values_list('entrance', flat=True)
+
+    # Filter apartments that belong to any of the user's entrances
+    all_apartments = Apartment.objects.filter(entrance__in=entrances)
 
     context = {
         'apartments': all_apartments,
-        'entrance': entrance
+        'entrances': entrances  # Optional: You might want to pass the entrances as well
     }
     return render(request, 'building/apartments.html', context)
+
+# def apartments(request):
+#     # Get all entrances associated with the user
+#     entrances = request.user.owner.filter(entrance__isnull=False).values_list('entrance', flat=True)
+#
+#     # Get all apartments based on the user's entrances
+#     apartments = Apartment.objects.filter(entrance__in=entrances)
+#
+#     # Filter by building and entrance if provided in the GET request
+#     building_id = request.GET.get('building')
+#     entrance_id = request.GET.get('entrance')
+#
+#     if building_id:
+#         apartments = apartments.filter(building_id=building_id)
+#
+#     if entrance_id:
+#         apartments = apartments.filter(entrance_id=entrance_id)
+#
+#     # Get all buildings and entrances for the dropdowns
+#     buildings = Building.objects.all()
+#     entrances = Entrance.objects.filter(id__in=entrances)
+#
+#     context = {
+#         'apartments': apartments,
+#         'buildings': buildings,
+#         'entrances': entrances,
+#         'entrance': entrance_id  # This is optional, in case you want to display the selected entrance
+#     }
+#     return render(request, 'building/apartments.html', context)
 
 
 @login_required
@@ -304,16 +336,11 @@ def create_expense(request):
             return redirect(f'{reverse("building:expense_dashboard")}?month={month}&year={year}')
 
         # Deduct the cost from the total maintenance amount
-        total_maintenance_amount = TotalMaintenanceAmount.objects.create(
-            amount=total_maintenance_amount.amount - Decimal(cost),
-            building=building,
-            entrance=entrance,
-            for_month=for_month
-        )
+        total_maintenance_amount.amount -= Decimal(cost)
         total_maintenance_amount.save()
 
         # Create the expense record
-        expense = Expense.objects.create(
+        Expense.objects.create(
             name=name,
             cost=float(cost),
             description=description,

@@ -26,10 +26,9 @@
                 </button>
             {% endif %}
         </div>
-
-        <!-- Total Maintenance Amount -->
+                <!-- Total Maintenance Amount -->
         <div class="text-center mb-4">
-            <h3 id="total-bill">Total maintenance amount: 
+            <h3 id="total-bill">Total maintenance amount:
                 <strong class="text-primary">{{ total_maintenance_amount|floatformat:2 }} lv</strong>
             </h3>
         </div>
@@ -86,7 +85,8 @@
                             <textarea name="description" class="form-control" placeholder="Description"></textarea>
                         </div>
                         <div class="mb-3">
-                            <input name="cost" type="number" step="any" class="form-control" placeholder="Cost" required>
+                            <input name="cost" type="number" step="any" class="form-control" placeholder="Cost"
+                                   required>
                         </div>
                         <div class="mb-3">
                             <input name="for_month" type="date" class="form-control" required>

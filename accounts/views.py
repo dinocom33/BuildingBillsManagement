@@ -237,61 +237,6 @@ def my_bills(request):
     return render(request, 'accounts/my_bills.html', context)
 
 
-# @login_required
-# @group_required('manager')
-# def manager_dashboard(request):
-#     now = datetime.now()
-#
-#     selected_month = request.GET.get('month')
-#     selected_year = request.GET.get('year')
-#
-#     if selected_month and selected_year:
-#         selected_month = int(selected_month)
-#         selected_year = int(selected_year)
-#     else:
-#         if now.month == 1:
-#             selected_month = 12
-#             selected_year = now.year - 1
-#         else:
-#             selected_month = now.month - 1
-#             selected_year = now.year
-#
-#     if selected_month == 0:
-#         selected_month = 12
-#         selected_year -= 1
-#     elif selected_month == 13:
-#         selected_month = 1
-#         selected_year += 1
-#
-#     user = request.user
-#     apartment = Apartment.objects.filter(owner=user).first()
-#
-#     if not apartment:
-#         selected_month = now.month - 1
-#         selected_year = now.year
-#         messages.error(request, 'You have no building, entrance and apartment associated with your account')
-#         return render(request, 'accounts/dashboard.html', {'month': selected_month, 'year': selected_year})
-#
-#     building, entrance, apartments = get_building_entrance_apartments(user)
-#
-#     apartment_bills = ApartmentBill.objects.filter(
-#         apartment__building=building,
-#         apartment__entrance=entrance,
-#         for_month__month=selected_month,
-#         for_month__year=selected_year
-#     )
-#
-#     context = {
-#         'entrance': entrance,
-#         'apartments': apartments,
-#         'bills': apartment_bills,
-#         'month': selected_month,
-#         'year': selected_year,
-#     }
-#
-#     return render(request, 'accounts/manager_dashboard.html', context)
-
-
 @login_required
 @group_required('manager')
 def pay_bill(request, bill_id):
