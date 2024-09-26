@@ -24,9 +24,12 @@
                                 Manage
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{% url 'building:apartments' %}">Apartments</a></li>
-                                <li><a class="dropdown-item" href="{% url 'residents' %}">Residents</a></li>
-                                <li><a class="dropdown-item" href="{% url 'building:bills' %}">Bills</a></li>
+                                <li><a class="dropdown-item" href="{% url 'building:apartments' %}">
+                                    <i class="fas fa-building me-2"></i> Apartments</a></li>
+                                <li><a class="dropdown-item" href="{% url 'residents' %}">
+                                    <i class="fas fa-users"></i> Residents</a></li>
+                                <li><a class="dropdown-item" href="{% url 'building:bills' %}">
+                                    <i class="fas fa-money-bill-alt me-1"></i> Bills</a></li>
                             </ul>
                         </li>
                     {% endif %}
@@ -34,26 +37,28 @@
             </ul>
             {% if request.user.is_authenticated %}
                 <div class="dropdown">
-                    <button data-mdb-button-init data-mdb-ripple-init data-mdb-dropdown-init type="button" 
+                    <button data-mdb-button-init data-mdb-ripple-init data-mdb-dropdown-init type="button"
                             class="btn btn-outline-secondary dropdown-toggle" data-mdb-toggle="dropdown"
                             data-bs-display="static" aria-expanded="false" id="dropdownMenuButton">
                         {% firstof request.user.full_name request.user.username %}
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
                         <li>
-                            <a class="dropdown-item" href="{% url 'profile' %}" type="button">My Profile</a>
+                            <a class="dropdown-item" href="{% url 'profile' %}" type="button"><i
+                                    class="fas fa-user-edit"></i> My Profile</a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="{% url 'my_bills' %}" type="button">My bills</a>
+                            <a class="dropdown-item" href="{% url 'my_bills' %}" type="button"><i
+                                    class="fas fa-money-bill"></i> My bills</a>
                         </li>
                         <li>
                             <hr class="dropdown-divider">
                         </li>
-                        <li class="ps-3 text-center">
+                        <li class="ps-3">
                             <a href="javascript:{document.getElementById('logout').submit()}"
-                               class="btn btn-outline-danger"
+                               style="text-decoration: none; color: darkred;"
                                type="submit">
-                                Logout
+                                <i class="fas fa-sign-out-alt"></i> Logout
                             </a>
                         </li>
                         <form id="logout" method="POST" action="{% url 'logout' %}">
