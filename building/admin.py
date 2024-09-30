@@ -98,7 +98,7 @@ class TotalMaintenanceAmountAdmin(admin.ModelAdmin):
 class MessageAdmin(admin.ModelAdmin):
     list_display = ('title', 'text', 'date')
     list_filter = ('date',)
-    search_fields = ('title',)
+    search_fields = ('title', 'date')
     list_display_links = ('title',)
 
 admin.site.site_header = 'Building Management System Admin Panel'

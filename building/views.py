@@ -22,8 +22,19 @@ User = get_user_model()
 @group_required('manager')
 def create_building(request):
     if request.method == 'POST':
+        user = request.user
         number = request.POST['number']
         address = request.POST['address']
+
+        if Building.objects.filter(number=number, address=address).exists():
+            messages.error(request, 'Building already exists')
+            return redirect('building:apartments')
+
+        if user.owner.filter(entrance__isnull=False).exists():
+            messages.error(request, 'You already have a building')
+            return redirect('building:apartments')
+
+
         Building.objects.create(number=number, address=address)
         return redirect('building:apartments')
     return render(request, 'building/apartments.html')
@@ -33,10 +44,27 @@ def create_building(request):
 @group_required('manager')
 def create_entrance(request):
     if request.method == 'POST':
+        user = request.user
         name = request.POST['name']
         building = request.POST['building']
         building_id = Building.objects.filter(number=building).first().id
-        print(building_id)
+
+        if Entrance.objects.filter(name=name, building_id=building_id).exists():
+            messages.error(request, 'Entrance already exists')
+            return redirect('building:apartments')
+
+        if not user.owner.filter(entrance__isnull=False).exists():
+            messages.error(request, 'You do not have a building')
+            return redirect('building:apartments')
+
+        if user.owner.filter(entrance__isnull=False).first().entrance.building_id != building_id:
+            messages.error(request, 'You do not own this building')
+            return redirect('building:apartments')
+
+        if user.owner.filter(entrance__isnull=False).first().entrance.building_id == building_id:
+            messages.error(request, 'You already have an entrance')
+            return redirect('building:apartments')
+
         Entrance.objects.create(name=name, building_id=building_id)
         return redirect('building:apartments')
 
@@ -47,6 +75,7 @@ def create_entrance(request):
 @group_required('manager')
 def create_apartment(request):
     if request.method == 'POST':
+        user = request.user
         building = request.POST['building']
         entrance = request.POST['entrance']
         owner = request.POST['owner']
@@ -59,14 +88,27 @@ def create_apartment(request):
             owner_id = User.objects.filter(email=owner).first().id
         except AttributeError:
             messages.error(request, 'Invalid data')
-            return redirect('building:create_apartment')
+            return redirect('building:apartments')
+
+        if not user.owner.filter(entrance__isnull=False).exists():
+            messages.error(request, 'You do not have a building')
+            return redirect('building:apartments')
+
+        if user.owner.filter(entrance__isnull=False).first().entrance.building_id != building_id:
+            messages.error(request, 'You do not own this building')
+            return redirect('building:apartments')
+
+        if not user.owner.filter(entrance__isnull=False).first().entrance.id == entrance_id:
+            messages.error(request, 'You do not own this entrance')
+            return redirect('building:apartments')
 
         if Apartment.objects.filter(building__id=building_id, entrance__id=entrance_id, number=number).exists():
             messages.error(request, 'Apartment already exists')
-            return redirect('building:create_apartment')
+            return redirect('building:apartments')
 
         Apartment.objects.create(building_id=building_id, entrance_id=entrance_id, owner_id=owner_id, floor=floor,
                                  number=number)
+
         return redirect('building:apartments')
 
     return render(request, 'building/apartments.html')
