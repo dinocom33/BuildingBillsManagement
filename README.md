@@ -63,8 +63,8 @@ First you need to create a ```superuser```. With it you create the first user (w
  - **Manage/Apartments:** A manager's dashboard. Managers can create Building, Entrance and Apartments. One manager can create one Building and one Entrance only.
  - **Manage/Residents:** A manager's dashboard. Managers can view/add residents.
  - **Manage/Bills:** A manager's dashboard. Managers can view all bills and add new one.
- - **My bills:** A dashboard interface for regular users(residents) to see all the bills of his own apartment by month.
- - **My profile:** A dashboard interface for changing user information.
+ - **My bills:** A dashboard interface for users to see all the bills of his own apartment by month.
+ - **My profile:** A dashboard interface for managing user information.
 
 ### Project Structure
  - **accounts/:** Contains user authentication, management and dashboards logic.
