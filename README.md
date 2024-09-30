@@ -57,10 +57,13 @@ First you need to create a ```superuser```. With it you create the first user (w
 
 ### Usage
  - **Admin Panel:** Accessible at /admin, where managers can manage users, apartments, and billing information.
- - **Manager Dashboard:** A dedicated interface for managers to generate bills, view and manage payments, and handle various apartment-related operations.
- - **Dashboard:** A dashboard interface for regular users(residents) to see the bills of all apartments from the building entrance to which they belong by months.
- - **My bills:** A dashboard interface for regular users(residents) to see all the bills of his own apartment by month.(to do)
- - **My account:** A dashboard interface for changing user information.(to do)
+ - **Dashboard:** A dedicated dashboard interface for bills. Managers can generate bills, view and manage payments, and handle various apartment-related operations. Regular users(residents) can see the bills of all apartments from the building entrance to which they belong by months.
+ - **Expenses:** A dedicated dashboard interface for viewing/adding expenses. Managers can add expenses(for current month only). Regular users(residents) can see the expenses by months.
+ - **Messages:** A dedicated dashboard for viewing/adding messages. Managers can add messages/anounses. Residents can view the messages.
+ - **Manage/Apartments:** A manager's dashboard. Managers can create Building, Entrance and Apartments. One manager can create one Building and one Entrance only.
+ - **Manage/Residents:** A manager's dashboard. Managers can view/add residents.
+ - **My bills:** A dashboard interface for regular users(residents) to see all the bills of his own apartment by month.
+ - **My profile:** A dashboard interface for changing user information.
 
 ### Project Structure
  - **accounts/:** Contains user authentication, management and dashboards logic.
