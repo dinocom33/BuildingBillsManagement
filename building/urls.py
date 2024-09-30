@@ -13,4 +13,7 @@ urlpatterns = [
     path('expense_dashboard/', views.manage_expenses, name='expense_dashboard'),
     path('create_expense/', views.create_expense, name='create_expense'),
     path('bills/', views.bills, name='bills'),
+    path('add_message/', views.add_message, name='create_message'),
+    path('messages/', views.messages_view, name='messages'),
+    path('message/<int:message_id>/', views.message_view, name='message'),
 ]

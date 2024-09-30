@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from building.models import Building, Entrance, Apartment, Bill, ApartmentBill, Expense, TotalMaintenanceAmount
+from building.models import Building, Entrance, Apartment, Bill, ApartmentBill, Expense, TotalMaintenanceAmount, Message
 
 
 @admin.register(Building)
@@ -92,5 +92,13 @@ class TotalMaintenanceAmountAdmin(admin.ModelAdmin):
 
     def entrance(self, obj):
         return obj.apartment.entrance
+
+
+@admin.register(Message)
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ('title', 'text', 'date')
+    list_filter = ('date',)
+    search_fields = ('title',)
+    list_display_links = ('title',)
 
 admin.site.site_header = 'Building Management System Admin Panel'

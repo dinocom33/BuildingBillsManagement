@@ -1,6 +1,6 @@
 <nav class="navbar sticky-top navbar-expand-lg bg-body-tertiary">
     <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'dashboard' %}">My Building</a>
+        <a class="navbar-brand" href="{% url 'dashboard' %}"><i class="fa-solid fa-city me-2"></i> My Building</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo02"
                 aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -12,24 +12,30 @@
                 {#                </li>#}
                 {% if request.user.is_authenticated %}
                     <li class="nav-item me-4">
-                        <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+                        <a class="nav-link" href="{% url 'dashboard' %}"><i class="fa fa-dashboard"></i> Dashboard</a>
                     </li>
                     <li class="nav-item me-4">
-                        <a class="nav-link" href="{% url 'building:expense_dashboard' %}">Expenses</a>
+                        <a class="nav-link" href="{% url 'building:expense_dashboard' %}"><i class="fas fa-coins"></i> Expenses</a>
+                    </li>
+                    <li class="nav-item me-4">
+                        <a class="nav-link" href="{% url 'building:messages' %}"><i class="fa-regular fa-message"></i> Messages</a>
                     </li>
                     {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                                aria-expanded="false">
-                                Manage
+                                <i class="fas fa-briefcase"></i> Manage
                             </a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="{% url 'building:apartments' %}">
-                                    <i class="fas fa-building me-2"></i> Apartments</a></li>
+                                    <i class="fas fa-building me-2"></i> Apartments</a>
+                                </li>
                                 <li><a class="dropdown-item" href="{% url 'residents' %}">
-                                    <i class="fas fa-users"></i> Residents</a></li>
+                                    <i class="fas fa-users"></i> Residents</a>
+                                </li>
                                 <li><a class="dropdown-item" href="{% url 'building:bills' %}">
-                                    <i class="fas fa-money-bill-alt me-1"></i> Bills</a></li>
+                                    <i class="fas fa-money-bill-alt me-1"></i> Bills</a>
+                                </li>
                             </ul>
                         </li>
                     {% endif %}

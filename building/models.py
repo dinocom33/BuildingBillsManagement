@@ -128,3 +128,17 @@ class Expense(models.Model):
 
     def __str__(self):
         return str(self.name)
+
+
+class Message(models.Model):
+    building = models.ForeignKey(Building, on_delete=models.CASCADE, related_name='message')
+    entrance = models.ForeignKey(Entrance, on_delete=models.CASCADE, related_name='message')
+    title = models.CharField(max_length=100)
+    text = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date']
+
+    def __str__(self):
+        return str(self.title)

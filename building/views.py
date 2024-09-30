@@ -13,7 +13,7 @@ from django.urls import reverse
 from accounts.decorators import group_required
 from .tasks import create_apartment_bills_task
 
-from building.models import Building, Bill, Apartment, Entrance, Expense, TotalMaintenanceAmount
+from building.models import Building, Bill, Apartment, Entrance, Expense, TotalMaintenanceAmount, Message
 
 User = get_user_model()
 
@@ -376,3 +376,52 @@ def bills(request):
     }
 
     return render(request, 'building/bills.html', context)
+
+
+@login_required
+@group_required('manager')
+def add_message(request):
+    if request.method == 'POST':
+        title = request.POST['title']
+        text = request.POST['text']
+        user = request.user
+        building = user.owner.filter(entrance__isnull=False).first().entrance.building
+        entrance = user.owner.filter(entrance__isnull=False).first().entrance
+
+        Message.objects.create(
+            title=title,
+            text=text,
+            building=building,
+            entrance=entrance
+        )
+
+        messages.success(request, 'Message created successfully')
+        return redirect('building:messages')
+
+    return render(request, 'building/messages.html')
+
+
+@login_required
+def messages_view(request):
+    all_messages = Message.objects.filter(building__apartments__owner=request.user).order_by('-date')
+
+    paginator = Paginator(all_messages, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'all_messages': page_obj
+    }
+
+    return render(request, 'building/messages.html', context)
+
+
+@login_required
+def message_view(request, message_id):
+    message = Message.objects.get(id=message_id)
+
+    context = {
+        'message': message
+    }
+
+    return render(request, 'building/messages.html', context)
