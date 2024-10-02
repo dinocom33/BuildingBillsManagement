@@ -4,11 +4,9 @@ from celery import shared_task
 from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
 from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
-from django.conf import settings
 from .models import ApartmentBill, Apartment
-
-logger = logging.getLogger(__name__)
 
 
 @shared_task
@@ -68,7 +66,6 @@ def create_apartment_bills_task(apartments_ids, for_month, ap_el, ap_clean, ap_e
         for apartment_id in apartments_ids:
             apartment = Apartment.objects.get(id=apartment_id)
             last_bill = ApartmentBill.objects.filter(apartment=apartment).order_by('-for_month').first()
-            logger.info(f'Apartment {apartment.id}: Last bill found: {last_bill}')
 
             if last_bill is None:
                 last_change = 0
@@ -78,9 +75,6 @@ def create_apartment_bills_task(apartments_ids, for_month, ap_el, ap_clean, ap_e
                     logger.info(f'Apartment {apartment.id}: Last change: {last_change}')
                     last_bill.change = 0
                     last_bill.save()
-
-                # Log after saving the last_bill to make sure the update went through
-                logger.info(f'Apartment {apartment.id}: Last bill change set to 0')
 
             # Calculate individual amounts
             electricity = ap_el
@@ -119,4 +113,18 @@ def create_apartment_bills_task(apartments_ids, for_month, ap_el, ap_clean, ap_e
                 recipient_list
             )
 
-            logger.info(f'Apartment {apartment.id}: New bill task called with last_change = {last_change}')
+
+@shared_task
+def send_message_email_task(email_subject, email_html_message, from_email, recipient_list):
+    email = EmailMultiAlternatives(
+        subject=email_subject,
+        body=strip_tags(email_html_message),  # Plain-text version (stripped HTML)
+        from_email=from_email,
+        to=recipient_list,
+    )
+
+    # Attach the HTML version
+    email.attach_alternative(email_html_message, "text/html")
+
+    email.send()
+

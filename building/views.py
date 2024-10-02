@@ -8,10 +8,11 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
+from django.template.loader import render_to_string
 from django.urls import reverse
 
 from accounts.decorators import group_required
-from .tasks import create_apartment_bills_task
+from .tasks import create_apartment_bills_task, send_message_email_task
 
 from building.models import Building, Bill, Apartment, Entrance, Expense, TotalMaintenanceAmount, Message
 
@@ -429,7 +430,9 @@ def add_message(request):
         user = request.user
         building = user.owner.filter(entrance__isnull=False).first().entrance.building
         entrance = user.owner.filter(entrance__isnull=False).first().entrance
+        all_residents = User.objects.filter(owner__entrance=entrance)
 
+        # Save the message to the database
         Message.objects.create(
             title=title,
             text=text,
@@ -437,7 +440,33 @@ def add_message(request):
             entrance=entrance
         )
 
-        messages.success(request, 'Message created successfully')
+        email_subject = f'New message from {building.number} building'
+
+        protocol = 'https' if request.is_secure() else 'http'
+        domain = request.get_host()
+
+        # Construct the dashboard link
+        dashboard_link = f'{protocol}://{domain}/building/messages/'
+
+        # Render the HTML email template
+        email_html_message = render_to_string('building/new_message_email.html', {
+            'title': title,
+            'text': text,
+            'building': building,
+            'entrance': entrance,
+            'user': user,
+            'dashboard_link': dashboard_link,
+        })
+
+        # Send email task with HTML content
+        send_message_email_task.delay(
+            email_subject,
+            email_html_message,
+            from_email=os.getenv('EMAIL_HOST_USER'),
+            recipient_list=[resident.email for resident in all_residents]
+        )
+
+        messages.success(request, 'Message created and email sent successfully')
         return redirect('building:messages')
 
     return render(request, 'building/messages.html')
