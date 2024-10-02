@@ -447,7 +447,7 @@ def add_message(request):
 def messages_view(request):
     all_messages = Message.objects.filter(building__apartments__owner=request.user).order_by('-date')
 
-    paginator = Paginator(all_messages, 10)
+    paginator = Paginator(all_messages, 9)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 

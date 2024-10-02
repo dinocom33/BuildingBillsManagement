@@ -11,61 +11,61 @@
                 {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
                     <button type="button" class="btn btn-outline-danger mx-2" data-bs-toggle="modal"
                             data-bs-target="#addMessageModal" id="add-message">
-                        Add Message
+                        <i class="fas fa-plus-circle"></i> Add Message
                     </button>
                 {% endif %}
             </div>
+
             {% include 'partials/_alerts.html' %}
+
             {% if all_messages %}
                 <div class="row">
                     {% for message in all_messages %}
-                        <div class="col-sm-6 mb-3  mb-4">
-                            <div class="card">
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="card h-100 shadow-sm">
                                 <div class="card-body">
                                     <h5 class="card-title">{{ message.title }}</h5>
                                     <p class="card-text">{{ message.text | truncatechars:70 }}</p>
-                                    <button type="button" class="btn btn-outline-primary mx-2"
+                                    <button type="button" class="btn btn-outline-primary mt-2"
                                             data-bs-toggle="modal"
                                             data-bs-target="#viewMessageModal"
                                             data-message-id="{{ message.id }}"
                                             data-message-title="{{ message.title }}"
                                             data-message-text="{{ message.text }}"
                                             id="view-message-{{ message.id }}">
-                                        Read more
+                                        <i class="fas fa-eye"></i> Read more
                                     </button>
+                                </div>
+                                <div class="card-footer text-muted">
+                                    Posted on: {{ message.created_at|date:"M d, Y" }}
                                 </div>
                             </div>
                         </div>
                     {% endfor %}
                 </div>
             {% else %}
-                <h2 class="text-center mt-4">No messages found</h2>
+                <h3 class="text-center mt-4">No messages found</h3>
             {% endif %}
         </div>
 
         <!-- Modal for Adding Message -->
-        <div class="modal fade" id="addMessageModal" tabindex="-1" aria-labelledby="addMessageModal" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" style="max-width: 60%;">
+        <div class="modal fade" id="addMessageModal" tabindex="-1" aria-labelledby="addMessageModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title" id="addMessageModal">Enter the Message Details</h5>
+                        <h5 class="modal-title" id="addMessageModalLabel">Enter the Message Details</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <form method="post" action="{% url 'building:create_message' %}">
                         {% csrf_token %}
                         <div class="modal-body">
                             <div class="mb-3">
-                                <input type="hidden" name="month" value="{{ month }}">
-                                <input type="hidden" name="year" value="{{ year }}">
                                 <label for="title" class="form-label">Title</label>
-                                <input name="title" id="title" type="text"
-                                       placeholder="Enter message title here" class="form-control" required/>
+                                <input type="text" name="title" id="title" class="form-control" placeholder="Enter message title here" required>
                             </div>
                             <div class="mb-3">
                                 <label for="text" class="form-label">Message text</label>
-                                <textarea name="text" id="text" rows="6"
-                                          placeholder="Enter message text here" class="form-control"
-                                          required></textarea>
+                                <textarea name="text" id="text" class="form-control" rows="6" placeholder="Enter message text here" required></textarea>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -78,9 +78,8 @@
         </div>
 
         <!-- Modal for View Message -->
-        <div class="modal fade" id="viewMessageModal" tabindex="-1" aria-labelledby="viewMessageModalLabel"
-             aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" style="max-width: 60%;">
+        <div class="modal fade" id="viewMessageModal" tabindex="-1" aria-labelledby="viewMessageModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header bg-primary text-white">
                         <h5 class="modal-title" id="viewMessageModalLabel">Message Details</h5>
@@ -89,12 +88,11 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="message-title" class="form-label">Title</label>
-                            <input type="text" id="message-title" class="form-control" readonly/>
+                            <input type="text" id="message-title" class="form-control" readonly />
                         </div>
                         <div class="mb-3">
                             <label for="message-text" class="form-label">Message text</label>
-                            <textarea id="message-text" class="form-control"
-                                      readonly></textarea>
+                            <textarea id="message-text" class="form-control" readonly></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -111,8 +109,7 @@
                     <ul class="pagination">
                         {% if all_messages.has_previous %}
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ all_messages.previous_page_number }}"
-                                   aria-label="Previous">
+                                <a class="page-link" href="?page={{ all_messages.previous_page_number }}" aria-label="Previous">
                                     <span aria-hidden="true">&laquo;</span>
                                 </a>
                             </li>
@@ -152,46 +149,9 @@
             </div>
         {% endif %}
     </section>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const buttons = document.querySelectorAll('button[data-bs-target="#viewMessageModal"]');
 
-            buttons.forEach(function (button) {
-                button.addEventListener('click', function () {
-                    const messageTitle = button.getAttribute('data-message-title');
-                    const messageText = button.getAttribute('data-message-text');
+    <!-- Modularized JavaScript -->
+    <script src="{% static 'js/auto_resize.js' %}"></script>
+    <script src="{% static 'js/modal_message.js' %}"></script>
 
-                    document.getElementById('message-title').value = messageTitle;
-                    document.getElementById('message-text').value = messageText;
-                });
-            });
-        });
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const messageText = document.getElementById('message-text');
-
-            function autoResize() {
-                messageText.style.height = 'auto';
-                messageText.style.height = (messageText.scrollHeight) + 'px';
-            }
-
-            // Resize textarea when the modal is shown
-            const modal = document.getElementById('viewMessageModal');
-            modal.addEventListener('shown.bs.modal', autoResize);
-        });
-    </script>
-    <!-- JavaScript to auto-resize textarea -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const textarea = document.getElementById('text');
-
-            function autoResize() {
-                this.style.height = 'auto';  // Reset height
-                this.style.height = (this.scrollHeight) + 'px';  // Set height based on content
-            }
-
-            textarea.addEventListener('input', autoResize);  // Attach the event listener
-        });
-    </script>
 {% endblock %}
