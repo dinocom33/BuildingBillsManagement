@@ -34,7 +34,6 @@ def create_building(request):
             messages.error(request, 'You already have a building')
             return redirect('building:apartments')
 
-
         Building.objects.create(number=number, address=address)
         return redirect('building:apartments')
     return render(request, 'building/apartments.html')
@@ -112,6 +111,73 @@ def create_apartment(request):
         return redirect('building:apartments')
 
     return render(request, 'building/apartments.html')
+
+
+@login_required
+@group_required('manager')
+def apartments(request):
+    # Get all entrances associated with the user
+    entrances = request.user.owner.filter(entrance__isnull=False).values_list('entrance', flat=True)
+
+    # Filter apartments that belong to any of the user's entrances
+    all_apartments = Apartment.objects.filter(entrance__in=entrances)
+
+    context = {
+        'apartments': all_apartments,
+        'entrances': entrances  # Optional: You might want to pass the entrances as well
+    }
+    return render(request, 'building/apartments.html', context)
+
+
+# def apartments(request):
+#     # Get all entrances associated with the user
+#     entrances = request.user.owner.filter(entrance__isnull=False).values_list('entrance', flat=True)
+#
+#     # Get all apartments based on the user's entrances
+#     apartments = Apartment.objects.filter(entrance__in=entrances)
+#
+#     # Filter by building and entrance if provided in the GET request
+#     building_id = request.GET.get('building')
+#     entrance_id = request.GET.get('entrance')
+#
+#     if building_id:
+#         apartments = apartments.filter(building_id=building_id)
+#
+#     if entrance_id:
+#         apartments = apartments.filter(entrance_id=entrance_id)
+#
+#     # Get all buildings and entrances for the dropdowns
+#     buildings = Building.objects.all()
+#     entrances = Entrance.objects.filter(id__in=entrances)
+#
+#     context = {
+#         'apartments': apartments,
+#         'buildings': buildings,
+#         'entrances': entrances,
+#         'entrance': entrance_id  # This is optional, in case you want to display the selected entrance
+#     }
+#     return render(request, 'building/apartments.html', context)
+
+
+@login_required
+@group_required('manager')
+def bills(request):
+    user = request.user
+    building = user.owner.filter(entrance__isnull=False).first().entrance.building
+    entrance = user.owner.filter(entrance__isnull=False).first().entrance
+    all_bills = Bill.objects.filter(building=building, entrance=entrance).order_by('-for_month')
+
+    paginator = Paginator(all_bills, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'building': building,
+        'entrance': entrance,
+        'bills': page_obj
+    }
+
+    return render(request, 'building/bills.html', context)
 
 
 @login_required
@@ -217,51 +283,6 @@ def create_bill(request):
         return redirect('building:bills')
 
     return render(request, 'building/bills.html')
-
-
-@login_required
-@group_required('manager')
-def apartments(request):
-    # Get all entrances associated with the user
-    entrances = request.user.owner.filter(entrance__isnull=False).values_list('entrance', flat=True)
-
-    # Filter apartments that belong to any of the user's entrances
-    all_apartments = Apartment.objects.filter(entrance__in=entrances)
-
-    context = {
-        'apartments': all_apartments,
-        'entrances': entrances  # Optional: You might want to pass the entrances as well
-    }
-    return render(request, 'building/apartments.html', context)
-
-# def apartments(request):
-#     # Get all entrances associated with the user
-#     entrances = request.user.owner.filter(entrance__isnull=False).values_list('entrance', flat=True)
-#
-#     # Get all apartments based on the user's entrances
-#     apartments = Apartment.objects.filter(entrance__in=entrances)
-#
-#     # Filter by building and entrance if provided in the GET request
-#     building_id = request.GET.get('building')
-#     entrance_id = request.GET.get('entrance')
-#
-#     if building_id:
-#         apartments = apartments.filter(building_id=building_id)
-#
-#     if entrance_id:
-#         apartments = apartments.filter(entrance_id=entrance_id)
-#
-#     # Get all buildings and entrances for the dropdowns
-#     buildings = Building.objects.all()
-#     entrances = Entrance.objects.filter(id__in=entrances)
-#
-#     context = {
-#         'apartments': apartments,
-#         'buildings': buildings,
-#         'entrances': entrances,
-#         'entrance': entrance_id  # This is optional, in case you want to display the selected entrance
-#     }
-#     return render(request, 'building/apartments.html', context)
 
 
 @login_required
@@ -397,27 +418,6 @@ def create_expense(request):
         return redirect(f'{reverse("building:expense_dashboard")}?month={month}&year={year}')
 
     return render(request, 'building/manage_expenses.html')
-
-
-@login_required
-@group_required('manager')
-def bills(request):
-    user = request.user
-    building = user.owner.filter(entrance__isnull=False).first().entrance.building
-    entrance = user.owner.filter(entrance__isnull=False).first().entrance
-    all_bills = Bill.objects.filter(building=building, entrance=entrance).order_by('-for_month')
-
-    paginator = Paginator(all_bills, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    context = {
-        'building': building,
-        'entrance': entrance,
-        'bills': page_obj
-    }
-
-    return render(request, 'building/bills.html', context)
 
 
 @login_required

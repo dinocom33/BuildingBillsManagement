@@ -280,6 +280,8 @@ def pay_bill(request, bill_id):
 
             if current_month_bill:
                 current_month_bill.change += apartment_bill.change
+                apartment_bill.change = 0
+                apartment_bill.save()
                 current_month_bill.save()
 
         messages.success(request, 'Bill paid successfully')
