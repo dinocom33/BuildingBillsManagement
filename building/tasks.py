@@ -72,7 +72,6 @@ def create_apartment_bills_task(apartments_ids, for_month, ap_el, ap_clean, ap_e
             else:
                 if last_bill.is_paid:
                     last_change = last_bill.change
-                    logger.info(f'Apartment {apartment.id}: Last change: {last_change}')
                     last_bill.change = 0
                     last_bill.save()
 
