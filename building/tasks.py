@@ -96,7 +96,7 @@ def create_apartment_bills_task(apartments_ids, for_month, ap_el, ap_clean, ap_e
             )
             recipient_list = [apartment.owner.email]
 
-            # Call the existing task to create apartment bill and send email
+            # Call the task to create apartment bill and send email
             create_apartment_bill_task.delay(
                 apartment.id,
                 for_month,
