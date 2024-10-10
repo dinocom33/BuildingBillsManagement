@@ -1,0 +1,22 @@
+Dear {{ user.first_name }} {{ user.last_name }},
+
+We are pleased to inform you that your apartment bill for the month of {{ for_month }} has been generated.
+
+Apartment Number: {{ apartment_number }}
+
+Details of your bill:
+- Electricity: ${{ electricity }}
+- Cleaning: ${{ cleaning }}
+- Elevator Electricity: ${{ elevator_electricity }}
+- Elevator Maintenance: ${{ elevator_maintenance }}
+- Entrance Maintenance: ${{ entrance_maintenance }}
+- Change: ${{ change }}
+
+Total Amount Due: ${{ total }}
+
+Please make sure to complete the payment by the due date. If you have any questions or need further assistance, feel free to contact us.
+
+Thank you for your prompt attention to this matter.
+
+Best regards,
+The Management Team

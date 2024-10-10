@@ -11,10 +11,12 @@ app = Celery('BuildingBillsManagement')
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
 app.conf.update(
-    worker_prefetch_multiplier=10
+    worker_prefetch_multiplier=10,
+    broker_connection_retry_on_startup=True,
 )
 
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
+
 
 @app.task(bind=True)
 def debug_task(self):

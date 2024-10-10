@@ -1,6 +1,5 @@
-import logging
-
-from celery import shared_task
+from celery import shared_task, group
+from decimal import Decimal
 from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
 from django.template.loader import render_to_string
@@ -13,21 +12,37 @@ from .models import ApartmentBill, Apartment
 def create_apartment_bill_task(apartment_id, for_month, total_electricity, total_cleaning, total_elevator_electricity,
                                total_elevator_maintenance, total_entrance_maintenance, last_change, email_subject,
                                email_message, from_email, recipient_list):
-    apartment = Apartment.objects.get(id=apartment_id)
+    try:
+        apartment = Apartment.objects.get(id=apartment_id)
+    except Apartment.DoesNotExist:
+        print(f"Apartment with ID {apartment_id} not found.")
+        return None
+
+    total_electricity = Decimal(total_electricity)
+    total_cleaning = Decimal(total_cleaning)
+    total_elevator_electricity = Decimal(total_elevator_electricity)
+    total_elevator_maintenance = Decimal(total_elevator_maintenance)
+    total_entrance_maintenance = Decimal(total_entrance_maintenance)
+
+    # Calculate total amount
+    total_amount = (
+        total_electricity + total_cleaning + total_elevator_electricity +
+        total_elevator_maintenance + total_entrance_maintenance
+    )
 
     # Create the bill
     apartment_bill = ApartmentBill.objects.create(
         apartment=apartment,
         for_month=for_month,
         change=last_change,
-        electricity=float(total_electricity),
-        cleaning=float(total_cleaning),
-        elevator_electricity=float(total_elevator_electricity),
-        elevator_maintenance=float(total_elevator_maintenance),
-        entrance_maintenance=float(total_entrance_maintenance),
+        electricity=total_electricity,
+        cleaning=total_cleaning,
+        elevator_electricity=total_elevator_electricity,
+        elevator_maintenance=total_elevator_maintenance,
+        entrance_maintenance=total_entrance_maintenance,
     )
 
-    # Define the context to be passed to the HTML template
+    # Define the context to be passed to the HTML and plain-text templates
     context = {
         'apartment_number': apartment.number,
         'for_month': for_month,
@@ -36,16 +51,17 @@ def create_apartment_bill_task(apartment_id, for_month, total_electricity, total
         'elevator_electricity': total_elevator_electricity,
         'elevator_maintenance': total_elevator_maintenance,
         'entrance_maintenance': total_entrance_maintenance,
-        'total': total_electricity + total_cleaning + total_elevator_electricity + total_elevator_maintenance + total_entrance_maintenance,
+        'total': total_amount,
     }
 
-    # Render the HTML template with context
+    # Render the HTML and plain-text email templates
     html_email_message = render_to_string('accounts/new_bill_email.html', context)
+    plain_text_message = render_to_string('accounts/new_bill_email.txt', context)
 
     # Create the email object
     email = EmailMultiAlternatives(
         subject=email_subject,
-        body=email_message,  # Fallback plain text version
+        body=plain_text_message,  # Fallback plain text version
         from_email=from_email,
         to=recipient_list,
     )
@@ -53,8 +69,10 @@ def create_apartment_bill_task(apartment_id, for_month, total_electricity, total
     # Attach the HTML version
     email.attach_alternative(html_email_message, "text/html")
 
-    # Send the email
-    email.send()
+    try:
+        email.send()
+    except Exception as e:
+        print(f"Email sending failed: {e}")
 
     return apartment_bill.id
 
@@ -62,25 +80,30 @@ def create_apartment_bill_task(apartment_id, for_month, total_electricity, total
 @shared_task
 def create_apartment_bills_task(apartments_ids, for_month, ap_el, ap_clean, ap_elev_el, ap_maint, entr_maint,
                                 email_subject_template, email_message_template, from_email):
+    tasks = []
     with transaction.atomic():
         for apartment_id in apartments_ids:
-            apartment = Apartment.objects.get(id=apartment_id)
+            try:
+                apartment = Apartment.objects.get(id=apartment_id)
+            except Apartment.DoesNotExist:
+                print(f"Apartment with ID {apartment_id} not found.")
+                continue
+
             last_bill = ApartmentBill.objects.filter(apartment=apartment).order_by('-for_month').first()
+            last_change = last_bill.change if last_bill and last_bill.is_paid else 0
 
-            if last_bill is None:
-                last_change = 0
-            else:
-                if last_bill.is_paid:
-                    last_change = last_bill.change
-                    last_bill.change = 0
-                    last_bill.save()
+            if last_bill and last_bill.is_paid:
+                last_bill.change = 0
+                last_bill.save()
 
-            # Calculate individual amounts
-            electricity = ap_el
-            cleaning = ap_clean
-            elevator_electricity = ap_elev_el
-            elevator_maintenance = ap_maint
-            entrance_maintenance = entr_maint
+            # Calculate individual amounts as Decimal
+            electricity = Decimal(ap_el)
+            cleaning = Decimal(ap_clean)
+            elevator_electricity = Decimal(ap_elev_el)
+            elevator_maintenance = Decimal(ap_maint)
+            entrance_maintenance = Decimal(entr_maint)
+
+            total_amount = (electricity + cleaning + elevator_electricity + elevator_maintenance + entrance_maintenance)
 
             # Prepare email details
             email_subject = email_subject_template.format(apartment_number=apartment.number)
@@ -92,12 +115,12 @@ def create_apartment_bills_task(apartments_ids, for_month, ap_el, ap_clean, ap_e
                 elevator_electricity=elevator_electricity,
                 elevator_maintenance=elevator_maintenance,
                 entrance_maintenance=entrance_maintenance,
-                total=(electricity + cleaning + elevator_electricity + elevator_maintenance + entrance_maintenance)
+                total=total_amount
             )
             recipient_list = [apartment.owner.email]
 
-            # Call the task to create apartment bill and send email
-            create_apartment_bill_task.delay(
+            # Add task to the group
+            tasks.append(create_apartment_bill_task.s(
                 apartment.id,
                 for_month,
                 electricity,
@@ -110,14 +133,19 @@ def create_apartment_bills_task(apartments_ids, for_month, ap_el, ap_clean, ap_e
                 email_message,
                 from_email,
                 recipient_list
-            )
+            ))
+
+    # Execute all tasks as a group
+    group(tasks).apply_async()
 
 
 @shared_task
 def send_message_email_task(email_subject, email_html_message, from_email, recipient_list):
+    plain_text_message = strip_tags(email_html_message)
+
     email = EmailMultiAlternatives(
         subject=email_subject,
-        body=strip_tags(email_html_message),  # Plain-text version (stripped HTML)
+        body=plain_text_message,  # Plain-text version (stripped HTML)
         from_email=from_email,
         to=recipient_list,
     )
@@ -125,5 +153,7 @@ def send_message_email_task(email_subject, email_html_message, from_email, recip
     # Attach the HTML version
     email.attach_alternative(email_html_message, "text/html")
 
-    email.send()
-
+    try:
+        email.send()
+    except Exception as e:
+        print(f"Email sending failed: {e}")
