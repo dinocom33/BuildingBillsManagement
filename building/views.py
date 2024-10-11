@@ -12,6 +12,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 
 from accounts.decorators import group_required
+from ensure_celery_running import ensure_celery_running
 from .tasks import create_apartment_bills_task, send_message_email_task
 
 from building.models import Building, Bill, Apartment, Entrance, Expense, TotalMaintenanceAmount, Message
@@ -183,6 +184,7 @@ def bills(request):
 
 @login_required
 @group_required('manager')
+@ensure_celery_running
 def create_bill(request):
     if request.method == 'POST':
         user = request.user

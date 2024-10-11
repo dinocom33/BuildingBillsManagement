@@ -21,6 +21,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from BuildingBillsManagement import settings
 from accounts.decorators import group_required
 from building.models import Apartment, ApartmentBill
+from ensure_celery_running import ensure_celery_running
 from .forms import MyAccountUpdateForm
 from .tasks import send_email_task
 from .tokens import generate_token
@@ -128,7 +129,7 @@ def login(request):
             return redirect('login')
 
         auth.login(request, user)
-        messages.success(request, f'Welcome back {user.first_name} {user.last_name}')
+        messages.success(request, f'Welcome {user.first_name} {user.last_name}')
 
         if next_url:
             return redirect(next_url)
@@ -239,6 +240,7 @@ def my_bills(request):
 
 @login_required
 @group_required('manager')
+@ensure_celery_running
 def pay_bill(request, bill_id):
     if request.method == 'POST':
         apartment_bill = ApartmentBill.objects.get(id=bill_id)
