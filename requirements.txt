@@ -12,6 +12,7 @@ Django==5.0.9
 django-monthfield==0.1.4
 django-utils-six==2.0
 kombu==5.4.0
+mysqlclient==2.2.5
 prompt_toolkit==3.0.47
 psycopg2==2.9.9
 python-dateutil==2.9.0.post0
