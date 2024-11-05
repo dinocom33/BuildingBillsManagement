@@ -63,7 +63,8 @@ WSGI_APPLICATION = 'BuildingBillsManagement.wsgi.application'
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
+        # "ENGINE": "django.db.backends.postgresql",
+        'ENGINE': 'django.db.backends.mysql',
         "NAME": os.getenv('DATABASE_NAME', None),
         "USER": os.getenv('DATABASE_USER', None),
         "PASSWORD": os.getenv('DATABASE_PASSWORD', None),
@@ -125,7 +126,6 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Europe/Sofia'
-
 
 LOGIN_URL = '/accounts/login/'
 
