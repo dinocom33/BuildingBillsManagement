@@ -20,7 +20,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
 from BuildingBillsManagement import settings
 from accounts.decorators import group_required
-from building.models import Apartment, ApartmentBill
+from building.models import Apartment, ApartmentBill, TotalMaintenanceAmount
 from ensure_celery_running import ensure_celery_running
 from .forms import MyAccountUpdateForm
 from .tasks import send_email_task
@@ -247,6 +247,8 @@ def pay_bill(request, bill_id):
         given_sum = request.POST.get('sum')
         month = request.POST.get('month', '')
         year = request.POST.get('year', '')
+        total_maintenance_amount = TotalMaintenanceAmount.objects.filter(
+            building__entrance=apartment_bill.apartment.entrance).first()
 
         if not given_sum:
             messages.error(request, 'Sum is required')
@@ -285,6 +287,9 @@ def pay_bill(request, bill_id):
                 apartment_bill.change = 0
                 apartment_bill.save()
                 current_month_bill.save()
+
+        total_maintenance_amount.amount += apartment_bill.entrance_maintenance
+        total_maintenance_amount.save()
 
         messages.success(request, 'Bill paid successfully')
 

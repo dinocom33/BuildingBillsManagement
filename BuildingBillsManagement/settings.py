@@ -63,13 +63,16 @@ WSGI_APPLICATION = 'BuildingBillsManagement.wsgi.application'
 
 DATABASES = {
     "default": {
-        # "ENGINE": "django.db.backends.postgresql",
-        'ENGINE': 'django.db.backends.mysql',
+        "ENGINE": "django.db.backends.postgresql",
+        # 'ENGINE': 'django.db.backends.mysql',
         "NAME": os.getenv('DATABASE_NAME', None),
         "USER": os.getenv('DATABASE_USER', None),
         "PASSWORD": os.getenv('DATABASE_PASSWORD', None),
         "HOST": os.getenv('DATABASE_HOST', None),
         "PORT": os.getenv('DATABASE_PORT', None),
+        # "OPTIONS": {
+        #     "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+        # }
     }
 }
 

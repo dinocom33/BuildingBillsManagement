@@ -239,7 +239,7 @@ def create_bill(request):
             )
 
         TotalMaintenanceAmount.objects.create(
-            amount=total_maintenance_amount.amount + Decimal(total_entrance_maintenance),
+            amount=total_maintenance_amount.amount,
             building_id=building_id,
             entrance_id=entrance_id,
             for_month=next_month_str,
