@@ -373,8 +373,6 @@ def manage_expenses(request):
     try:
         building = user.owner.filter(entrance__isnull=False).first().entrance.building
         entrance = user.owner.filter(entrance__isnull=False).first().entrance
-        building = user.owner.filter(entrance__isnull=False).first().entrance.building
-        entrance = user.owner.filter(entrance__isnull=False).first().entrance
         total_maintenance_amount = TotalMaintenanceAmount.objects.filter(building=building, entrance=entrance,
                                                                          for_month__month=selected_month).order_by(
             '-id').first()

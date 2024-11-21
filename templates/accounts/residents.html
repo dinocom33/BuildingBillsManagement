@@ -16,7 +16,7 @@
         <!-- Add Resident Button -->
         <div class="d-flex justify-content-center gap-3 mb-4" id="navigation-buttons">
             {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
-                <button type="button" 
+                <button type="button"
                         class="btn btn-danger rounded-pill px-3 hover-bg-danger d-flex align-items-center"
                         data-bs-toggle="modal" data-bs-target="#addResidentModal" id="add-resident">
                     <i class="fas fa-plus me-2"></i>
@@ -24,12 +24,12 @@
                 </button>
             {% endif %}
         </div>
+        {% include 'partials/_alerts.html' %}
 
         <!-- Residents Table Card -->
         <div class="card border-0 shadow-sm">
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    {% include 'partials/_alerts.html' %}
                     <table class="table table-hover mb-0 align-middle compact-table">
                         <thead class="bg-light">
                         <tr>
@@ -75,7 +75,8 @@
                         <i class="fas fa-user-plus me-2"></i>
                         Enter the Resident Details
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
                 </div>
                 <form method="post" action="{% url 'create_resident' %}">
                     {% csrf_token %}
@@ -83,17 +84,20 @@
                         <div class="mb-3">
                             <label for="first_name" class="form-label">First Name</label>
                             <input name="first_name" id="first_name" type="text"
-                                   placeholder="Enter resident's first name" class="form-control border-0 bg-light" required/>
+                                   placeholder="Enter resident's first name" class="form-control border-0 bg-light"
+                                   required/>
                         </div>
                         <div class="mb-3">
                             <label for="last_name" class="form-label">Last Name</label>
                             <input name="last_name" type="text" id="last_name"
-                                   placeholder="Enter resident's last name" class="form-control border-0 bg-light" required/>
+                                   placeholder="Enter resident's last name" class="form-control border-0 bg-light"
+                                   required/>
                         </div>
                         <div class="mb-3">
                             <label for="email" class="form-label">Email</label>
                             <input name="email" type="email" id="email"
-                                   placeholder="Enter resident's email" class="form-control border-0 bg-light" required/>
+                                   placeholder="Enter resident's email" class="form-control border-0 bg-light"
+                                   required/>
                         </div>
                         <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
