@@ -495,6 +495,7 @@ def create_expense(request):
 
 @login_required
 @group_required('manager')
+@ensure_celery_running
 def add_message(request):
     if request.method == 'POST':
         title = request.POST['title']

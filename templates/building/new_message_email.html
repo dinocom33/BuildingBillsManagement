@@ -7,15 +7,15 @@
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f4f4f7;
+            background-color: #f8f9fa;
             margin: 0;
             padding: 0;
-            color: #51545e;
+            color: #495057;
         }
 
         .email-wrapper {
             width: 100%;
-            background-color: #f4f4f7;
+            background-color: #f8f9fa;
             padding: 20px;
         }
 
@@ -26,11 +26,10 @@
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             overflow: hidden;
-            padding: 20px;
         }
 
         .email-header {
-            background-color: #007bff;
+            background-color: #0d6efd;
             padding: 20px;
             text-align: center;
             color: #ffffff;
@@ -47,47 +46,41 @@
             padding: 30px;
             font-size: 16px;
             line-height: 1.7;
-            color: #51545e;
-            text-align: left;
+            color: #495057;
         }
 
         .email-body h2 {
-            font-size: 22px;
-            color: #333333;
+            font-size: 20px;
+            color: #0d6efd;
             margin-bottom: 15px;
         }
 
         .email-body p {
             margin: 0 0 20px;
-            padding: 0 0 20px;
             line-height: 1.7;
-            color: #51545e;
-        }
-
-        .email-body p:last-child {
-            margin-bottom: 0;
         }
 
         .email-body strong {
-            color: #333333;
+            color: #212529;
         }
 
         .email-footer {
             padding: 20px;
             text-align: center;
             font-size: 14px;
-            background-color: #f4f4f7;
-            color: #999999;
+            background-color: #f8f9fa;
+            color: #868e96;
         }
 
         .btn {
             display: inline-block;
-            background-color: #007bff;
+            background-color: #0d6efd;
             color: #ffffff;
-            padding: 10px 20px;
-            border-radius: 4px;
+            padding: 12px 25px;
+            border-radius: 50px;
             text-decoration: none;
             font-size: 16px;
+            font-weight: bold;
         }
 
         .btn:hover {
@@ -97,7 +90,7 @@
         .footer-text {
             margin-top: 10px;
             font-size: 14px;
-            color: #888888;
+            color: #868e96;
         }
     </style>
 </head>
@@ -106,18 +99,17 @@
     <div class="email-content">
         <!-- Email Header -->
         <div class="email-header">
-            <h1>"{{ building.number }} Building, {{ entrance.name }} Entrance" Notification</h1>
+            <h1>{{ building.number }} Building - {{ entrance.name }} Entrance Notification</h1>
         </div>
 
         <!-- Email Body -->
         <div class="email-body">
-
-            <h2><strong>Hello {{ user.first_name }} {{ user.last_name }},</strong></h2>
+            <h2>Hello {{ user.first_name }} {{ user.last_name }},</h2>
 
             <p>
                 You have received a new message from the building management for
-                <strong>Building {{ building.number }}</strong>,
-                <strong>Entrance {{ entrance.name }}</strong>. Below are the details of the message:
+                <strong>Building {{ building.number }}</strong>, 
+                <strong>Entrance {{ entrance.name }}</strong>.
             </p>
 
             <p>
@@ -142,9 +134,8 @@
 
         <!-- Email Footer -->
         <div class="email-footer">
-            <p>Sent from Building {{ building.number }}, Entrance {{ entrance.name }}.</p>
-            <p class="footer-text">You are receiving this email because you are registered as a resident in this
-                building.</p>
+            <p>Sent from <strong>Building {{ building.number }}</strong>, <strong>Entrance {{ entrance.name }}</strong>.</p>
+            <p class="footer-text">You are receiving this email because you are registered as a resident in this building.</p>
         </div>
     </div>
 </div>
