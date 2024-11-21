@@ -37,6 +37,8 @@ def create_building(request):
             return redirect('building:apartments')
 
         Building.objects.create(number=number, address=address)
+
+        messages.success(request, 'Building created successfully')
         return redirect('building:apartments')
     return render(request, 'building/apartments.html')
 
@@ -45,29 +47,39 @@ def create_building(request):
 @group_required('manager')
 def create_entrance(request):
     if request.method == 'POST':
+        # Get the current user
         user = request.user
+
+        # Extract entrance details
         name = request.POST['name']
-        building = request.POST['building']
-        building_id = Building.objects.filter(number=building).first().id
+        building_number = request.POST['building']
 
-        if Entrance.objects.filter(name=name, building_id=building_id).exists():
-            messages.error(request, 'Entrance already exists')
+        try:
+            # Find the building
+            building = Building.objects.get(number=building_number)
+        except Building.DoesNotExist:
+            messages.error(request, 'Building does not exist')
             return redirect('building:apartments')
 
-        if not user.owner.filter(entrance__isnull=False).exists():
-            messages.error(request, 'You do not have a building')
+        # Check if entrance already exists for this building
+        if Entrance.objects.filter(name=name, building=building).exists():
+            messages.error(request, 'Entrance already exists in this building')
             return redirect('building:apartments')
 
-        if user.owner.filter(entrance__isnull=False).first().entrance.building_id != building_id:
-            messages.error(request, 'You do not own this building')
+        # Create the first entrance
+        try:
+            # Create a new entrance directly
+            entrance = Entrance.objects.create(
+                name=name,
+                building=building
+            )
+
+            messages.success(request, 'Entrance created successfully')
             return redirect('building:apartments')
 
-        if user.owner.filter(entrance__isnull=False).first().entrance.building_id == building_id:
-            messages.error(request, 'You already have an entrance')
+        except Exception as e:
+            messages.error(request, f'Error creating entrance: {str(e)}')
             return redirect('building:apartments')
-
-        Entrance.objects.create(name=name, building_id=building_id)
-        return redirect('building:apartments')
 
     return render(request, 'building/apartments.html')
 
@@ -84,32 +96,38 @@ def create_apartment(request):
         number = request.POST['number']
 
         try:
-            building_id = Building.objects.filter(number=building).first().id
-            entrance_id = Entrance.objects.filter(name=entrance).first().id
-            owner_id = User.objects.filter(email=owner).first().id
-        except AttributeError:
+            # Use get() instead of filter().first() for more precise error handling
+            building_obj = Building.objects.get(number=building)
+            entrance_obj = Entrance.objects.get(name=entrance, building=building_obj)
+            owner_obj = User.objects.get(email=owner)
+        except (Building.DoesNotExist, Entrance.DoesNotExist, User.DoesNotExist):
             messages.error(request, 'Invalid data')
             return redirect('building:apartments')
 
-        if not user.owner.filter(entrance__isnull=False).exists():
-            messages.error(request, 'You do not have a building')
+        # Verify that the entrance belongs to the building
+        if entrance_obj.building != building_obj:
+            messages.error(request, 'Entrance does not belong to this building')
             return redirect('building:apartments')
 
-        if user.owner.filter(entrance__isnull=False).first().entrance.building_id != building_id:
-            messages.error(request, 'You do not own this building')
-            return redirect('building:apartments')
-
-        if not user.owner.filter(entrance__isnull=False).first().entrance.id == entrance_id:
-            messages.error(request, 'You do not own this entrance')
-            return redirect('building:apartments')
-
-        if Apartment.objects.filter(building__id=building_id, entrance__id=entrance_id, number=number).exists():
+        # Check if apartment already exists
+        if Apartment.objects.filter(
+            building=building_obj,
+            entrance=entrance_obj,
+            number=number
+        ).exists():
             messages.error(request, 'Apartment already exists')
             return redirect('building:apartments')
 
-        Apartment.objects.create(building_id=building_id, entrance_id=entrance_id, owner_id=owner_id, floor=floor,
-                                 number=number)
+        # Create the apartment
+        Apartment.objects.create(
+            building=building_obj,
+            entrance=entrance_obj,
+            owner=owner_obj,
+            floor=floor,
+            number=number
+        )
 
+        messages.success(request, 'Apartment created successfully')
         return redirect('building:apartments')
 
     return render(request, 'building/apartments.html')
@@ -118,66 +136,104 @@ def create_apartment(request):
 @login_required
 @group_required('manager')
 def apartments(request):
-    # Get all entrances associated with the user
-    entrances = request.user.owner.filter(entrance__isnull=False).values_list('entrance', flat=True)
+    try:
+        # Get all entrances associated with the user
+        entrances = (
+            request.user.owner
+            .select_related('entrance__building')
+            .filter(entrance__isnull=False)
+            .values_list('entrance', flat=True)
+        )
 
-    # Filter apartments that belong to any of the user's entrances
-    all_apartments = Apartment.objects.filter(entrance__in=entrances)
+        # If no entrances exist, create an empty queryset
+        if not entrances:
+            # Find apartments created by the current user
+            all_apartments = Apartment.objects.filter(
+                building__in=Building.objects.filter(
+                    entrance__apartments__isnull=False
+                )
+            ).distinct()
+        else:
+            # Filter apartments that belong to the user's entrances
+            all_apartments = Apartment.objects.filter(entrance__in=entrances)
+
+        # Additional filtering to ensure apartments are associated with user's context
+        all_apartments = all_apartments.select_related(
+            'building',
+            'entrance',
+            'owner'
+        ).order_by('entrance__name', 'number')
+
+    except Exception as e:
+        # Handle any potential errors
+        messages.error(request, f'Error loading apartments: {str(e)}')
+        all_apartments = Apartment.objects.none()
 
     context = {
         'apartments': all_apartments,
-        'entrances': entrances  # Optional: You might want to pass the entrances as well
+        'entrances': entrances
     }
     return render(request, 'building/apartments.html', context)
-
-
-# def apartments(request):
-#     # Get all entrances associated with the user
-#     entrances = request.user.owner.filter(entrance__isnull=False).values_list('entrance', flat=True)
-#
-#     # Get all apartments based on the user's entrances
-#     apartments = Apartment.objects.filter(entrance__in=entrances)
-#
-#     # Filter by building and entrance if provided in the GET request
-#     building_id = request.GET.get('building')
-#     entrance_id = request.GET.get('entrance')
-#
-#     if building_id:
-#         apartments = apartments.filter(building_id=building_id)
-#
-#     if entrance_id:
-#         apartments = apartments.filter(entrance_id=entrance_id)
-#
-#     # Get all buildings and entrances for the dropdowns
-#     buildings = Building.objects.all()
-#     entrances = Entrance.objects.filter(id__in=entrances)
-#
-#     context = {
-#         'apartments': apartments,
-#         'buildings': buildings,
-#         'entrances': entrances,
-#         'entrance': entrance_id  # This is optional, in case you want to display the selected entrance
-#     }
-#     return render(request, 'building/apartments.html', context)
 
 
 @login_required
 @group_required('manager')
 def bills(request):
-    user = request.user
-    building = user.owner.filter(entrance__isnull=False).first().entrance.building
-    entrance = user.owner.filter(entrance__isnull=False).first().entrance
-    all_bills = Bill.objects.filter(building=building, entrance=entrance).order_by('-for_month')
+    try:
+        # Optimize the query to reduce database hits
+        owner = (
+            request.user.owner
+            .select_related('entrance__building')
+            .filter(entrance__isnull=False)
+            .first()
+        )
 
-    paginator = Paginator(all_bills, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+        # Handle case where no entrance exists
+        if not owner or not owner.entrance:
+            context = {
+                'building': None,
+                'entrance': None,
+                'bills': [],
+                'no_data': True
+            }
+            messages.info(request, 'No building or entrance found.')
+            return render(request, 'building/bills.html', context)
 
-    context = {
-        'building': building,
-        'entrance': entrance,
-        'bills': page_obj
-    }
+        # Get building and entrance
+        building = owner.entrance.building
+        entrance = owner.entrance
+
+        # Query bills with additional optimization
+        all_bills = Bill.objects.filter(
+            building=building,
+            entrance=entrance
+        ).order_by('-for_month')
+
+        # Paginate bills
+        paginator = Paginator(all_bills, 10)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        context = {
+            'building': building,
+            'entrance': entrance,
+            'bills': page_obj,
+            'no_data': len(page_obj) == 0
+        }
+
+        # Add a message if no bills exist
+        if len(page_obj) == 0:
+            messages.info(request, 'No bills found for this entrance.')
+
+    except Exception as e:
+        # Handle any unexpected errors
+        context = {
+            'building': None,
+            'entrance': None,
+            'bills': [],
+            'error': str(e)
+        }
+        messages.error(request, f'An error occurred: {str(e)}')
 
     return render(request, 'building/bills.html', context)
 
@@ -314,48 +370,64 @@ def manage_expenses(request):
         selected_year += 1
 
     user = request.user
-    building = user.owner.filter(entrance__isnull=False).first().entrance.building
-    entrance = user.owner.filter(entrance__isnull=False).first().entrance
-    total_maintenance_amount = TotalMaintenanceAmount.objects.filter(building=building, entrance=entrance,
-                                                                     for_month__month=selected_month).order_by(
-        '-id').first()
-    expenses = Expense.objects.filter(building=building, entrance=entrance, for_month__month=selected_month).order_by(
-        '-id')
+    try:
+        building = user.owner.filter(entrance__isnull=False).first().entrance.building
+        entrance = user.owner.filter(entrance__isnull=False).first().entrance
+        building = user.owner.filter(entrance__isnull=False).first().entrance.building
+        entrance = user.owner.filter(entrance__isnull=False).first().entrance
+        total_maintenance_amount = TotalMaintenanceAmount.objects.filter(building=building, entrance=entrance,
+                                                                         for_month__month=selected_month).order_by(
+            '-id').first()
+        expenses = Expense.objects.filter(building=building, entrance=entrance, for_month__month=selected_month).order_by(
+            '-id')
 
-    if total_maintenance_amount:
-        total_maintenance_amount = total_maintenance_amount.amount
-    else:
-        total_maintenance_amount = 0
+        if total_maintenance_amount:
+            total_maintenance_amount = total_maintenance_amount.amount
+        else:
+            total_maintenance_amount = 0
 
-    if request.method == 'POST':
-        name = request.POST['name']
-        cost = request.POST['cost']
-        description = request.POST['description']
-        for_month = request.POST['for_month']
+        if request.method == 'POST':
+            name = request.POST['name']
+            cost = request.POST['cost']
+            description = request.POST['description']
+            for_month = request.POST['for_month']
 
-        expense = Expense.objects.create(
-            name=name,
-            cost=float(cost),
-            description=description,
-            building=building,
-            entrance=entrance,
-            for_month=for_month,
-        )
+            expense = Expense.objects.create(
+                name=name,
+                cost=float(cost),
+                description=description,
+                building=building,
+                entrance=entrance,
+                for_month=for_month,
+            )
 
-        total_maintenance_amount.amount -= expense.cost
-        total_maintenance_amount.save()
+            total_maintenance_amount.amount -= expense.cost
+            total_maintenance_amount.save()
 
-        messages.success(request, 'Expense created successfully')
-        return redirect('building:expense_dashboard', month=selected_month, year=selected_year)
+            messages.success(request, 'Expense created successfully')
+            return redirect('building:expense_dashboard', month=selected_month, year=selected_year)
 
-    context = {
-        'total_maintenance_amount': total_maintenance_amount,
-        'month': selected_month,
-        'year': selected_year,
-        'building': building,
-        'entrance': entrance,
-        'expenses': expenses
-    }
+        context = {
+            'total_maintenance_amount': total_maintenance_amount,
+            'month': selected_month,
+            'year': selected_year,
+            'building': building,
+            'entrance': entrance,
+            'expenses': expenses
+        }
+    except AttributeError:
+        building = None
+        entrance = None
+        total_maintenance_amount = None
+        expenses = []
+        context = {
+            'total_maintenance_amount': total_maintenance_amount,
+            'month': selected_month,
+            'year': selected_year,
+            'building': building,
+            'entrance': entrance,
+            'expenses': expenses
+        }
 
     return render(request, 'building/manage_expenses.html', context)
 

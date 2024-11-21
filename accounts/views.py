@@ -327,15 +327,60 @@ def pay_bill(request, bill_id):
 @login_required
 @group_required('manager')
 def residents(request):
-    building = request.user.owner.filter(entrance__isnull=False).first().entrance.building
-    entrance = request.user.owner.filter(entrance__isnull=False).first().entrance
-    all_apartments = entrance.apartments.all()
+    try:
+        # First, try to get owner with entrance
+        owner = (
+            request.user.owner
+            .select_related('entrance__building')
+            .prefetch_related('entrance__apartments')
+            .filter(entrance__isnull=False)
+            .first()
+        )
 
-    context = {
-        'apartments': all_apartments,
-        'entrance': entrance,
-        'building': building
-    }
+        # If no owner or no entrance, find apartments created by the current user
+        if not owner or not owner.entrance:
+            # Find apartments in buildings where the user has created entrances
+            all_apartments = Apartment.objects.filter(
+                building__entrance__apartments__isnull=False
+            ).select_related(
+                'building',
+                'entrance'
+            ).distinct()
+
+            # Determine building and entrance
+            if all_apartments.exists():
+                building = all_apartments.first().building
+                entrance = all_apartments.first().entrance
+            else:
+                building = None
+                entrance = None
+
+        else:
+            # Use owner's entrance and building
+            entrance = owner.entrance
+            building = entrance.building
+            all_apartments = entrance.apartments.all()
+
+        context = {
+            'apartments': all_apartments,
+            'entrance': entrance,
+            'building': building,
+            'no_data': len(all_apartments) == 0
+        }
+
+        # Add a message if no apartments are found
+        if len(all_apartments) == 0:
+            messages.info(request, 'No residents found.')
+
+    except Exception as e:
+        # Handle any unexpected errors
+        messages.error(request, f'An error occurred: {str(e)}')
+        context = {
+            'apartments': [],
+            'entrance': None,
+            'building': None,
+            'error': str(e)
+        }
 
     return render(request, 'accounts/residents.html', context)
 

@@ -7,8 +7,8 @@
         </a>
 
         <!-- Mobile Toggle -->
-        <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" 
-                data-bs-target="#navbarContent" aria-controls="navbarContent" 
+        <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarContent" aria-controls="navbarContent"
                 aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -19,30 +19,30 @@
             <ul class="navbar-nav mx-auto mb-2 mb-lg-0" style="padding-left: 100px; padding-right: 100px;">
                 {% if request.user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center px-3 py-2 rounded-pill hover-bg-light" 
+                        <a class="nav-link d-flex align-items-center px-3 py-2 rounded-pill hover-bg-light"
                            href="{% url 'dashboard' %}">
                             <i class="fa fa-dashboard text-primary me-2"></i>
                             <span>Dashboard</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center px-3 py-2 rounded-pill hover-bg-light" 
+                        <a class="nav-link d-flex align-items-center px-3 py-2 rounded-pill hover-bg-light"
                            href="{% url 'building:expense_dashboard' %}">
                             <i class="fas fa-coins text-warning me-2"></i>
                             <span>Expenses</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center px-3 py-2 rounded-pill hover-bg-light" 
+                        <a class="nav-link d-flex align-items-center px-3 py-2 rounded-pill hover-bg-light"
                            href="{% url 'building:messages' %}">
                             <i class="fa-regular fa-message text-info me-2"></i>
                             <span>Messages</span>
                         </a>
                     </li>
-                    
+
                     {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center px-3 py-2 rounded-pill hover-bg-light" 
+                            <a class="nav-link dropdown-toggle d-flex align-items-center px-3 py-2 rounded-pill hover-bg-light"
                                href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-briefcase text-success me-2"></i>
                                 <span>Manage</span>
@@ -75,7 +75,7 @@
             <!-- User Menu - Far Right -->
             {% if request.user.is_authenticated %}
                 <div class="dropdown user-menu">
-                    <button class="btn btn-light dropdown-toggle d-flex align-items-center shadow-none" 
+                    <button class="btn btn-light dropdown-toggle d-flex align-items-center shadow-none"
                             type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-user-circle text-primary me-2"></i>
                         <span>{% firstof request.user.full_name request.user.username %}</span>
@@ -103,7 +103,7 @@
                         {% endif %}
                         <li><hr class="dropdown-divider my-2"></li>
                         <li>
-                            <a class="dropdown-item py-2 px-3 rounded-3 text-danger" 
+                            <a class="dropdown-item py-2 px-3 rounded-3 text-danger"
                                href="javascript:{document.getElementById('logout').submit()}">
                                 <i class="fas fa-sign-out-alt me-2"></i>
                                 <span>Logout</span>
@@ -169,29 +169,4 @@
 .user-menu {
     margin-left: auto;
 }
-
-/* Responsive adjustments */
-{#@media (max-width: 991.98px) {#}
-{#    .navbar-nav {#}
-{#        text-align: center;#}
-{#        padding-left: 0 !important;#}
-{#        padding-right: 0 !important;#}
-{#    }#}
-{#    #}
-{#    .nav-link {#}
-{#        justify-content: center;#}
-{#    }#}
-{#    #}
-{#    .dropdown-menu {#}
-{#        text-align: center;#}
-{#    }#}
-{#    #}
-{#    .user-menu {#}
-{#        margin: 1rem auto;#}
-{#    }#}
-{#    #}
-{#    .navbar-brand {#}
-{#        margin-right: 0;#}
-{#    }#}
-{#}#}
 </style>
