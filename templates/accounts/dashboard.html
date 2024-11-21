@@ -5,113 +5,171 @@
 {% block title %}Dashboard{% endblock title %}
 
 {% block content %}
-    <div class="container mt-4" id="table-container">
-        <h1 class="text-center mb-4">
-            Bills for Entrance <strong class="text-primary">{{ entrance }}</strong> in
-            <strong class="text-primary">{{ month|month_name }} {{ year }}</strong>
-        </h1>
+    <div class="container" id="table-container">
+        <!-- Header Section -->
+        <div class="container py-4">
+            <div class="text-center mb-5">
+                <h1 class="display-5 fw-bold">
+                    Bills for Entrance
+                    <span class="text-primary fw-bold">{{ entrance }}</span>
+                </h1>
+                <h2 class="h4 text-muted">
+                    <span class="text-primary fw-semibold">{{ month|month_name }} {{ year }}</span>
+                </h2>
+            </div>
 
-        <!-- Navigation Buttons -->
-        <div class="d-flex justify-content-center mb-3" id="navigation-buttons">
-            <a href="?month={{ month|add:-1 }}&year={{ year }}" class="btn btn-outline-primary mx-2">
-                &#8592; Previous Month
-            </a>
-            <a href="?month={{ month|add:1 }}&year={{ year }}" class="btn btn-outline-primary mx-2">
-                Next Month &#8594;
-            </a>
-            {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
-                <button onclick="window.print()" class="btn btn-outline-secondary mx-2" id="print-button">
-                    Print Table
-                </button>
-            {% endif %}
-        </div>
-
-        <!-- Bills Table -->
-        <div class="table-responsive">
-            <table class="table table-striped table-bordered table-hover text-center align-middle">
-                {% include 'partials/_alerts.html' %}
-                <thead class="table-secondary">
-                <tr>
-                    <th>Owner</th>
-                    <th>Apartment</th>
-                    <th>Electricity</th>
-                    <th>Cleaning</th>
-                    <th>Elev. Electricity</th>
-                    <th>Elev. Maintenance</th>
-                    <th>Entr. Maintenance</th>
-                    <th>Total Bill</th>
-                    <th>Change</th>
-                    <th>Month</th>
-                    {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
-                        <th id="navigation-buttons">Action</th>
-                    {% else %}
-                        <th>Paid</th>
-                    {% endif %}
-                </tr>
-                </thead>
-                <tbody>
-                {% if bills %}
-                    {% for bill in bills %}
-                        <tr>
-                            <td>{{ bill.apartment.owner.full_name }}</td>
-                            <td>{{ bill.apartment.number }}</td>
-                            <td>{{ bill.electricity }} лв.</td>
-                            <td>{{ bill.cleaning }} лв.</td>
-                            <td>{{ bill.elevator_electricity }} лв.</td>
-                            <td>{{ bill.elevator_maintenance }} лв.</td>
-                            <td>{{ bill.entrance_maintenance }} лв.</td>
-                            <td>{{ bill.total_bill }} лв.</td>
-                            <td>{{ bill.change }} лв.</td>
-                            <td>{{ bill.for_month }}</td>
-                            {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
-                                <td id="navigation-buttons">
-                                    {% if not bill.is_paid %}
-                                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                                data-bs-target="#payModal" data-bill-id="{{ bill.id }}">
-                                            Pay
-                                        </button>
-                                    {% else %}
-                                        <button class="btn btn-sm btn-secondary" disabled>Paid</button>
-                                    {% endif %}
-                                </td>
-                            {% else %}
-                                <td style="color: {{ bill.is_paid|yesno:'#1ba87e,#CC3434' }}">
-                                    {{ bill.is_paid|yesno:'Yes,No' }}
-                                </td>
-                            {% endif %}
-                        </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr>
-                        <td colspan="11" class="text-center">No bills found</td>
-                    </tr>
+            <!-- Navigation Controls -->
+            <div class="d-flex justify-content-center gap-3 mb-4" id="navigation-buttons">
+                <a href="?month={{ month|add:-1 }}&year={{ year }}"
+                   class="btn btn-light rounded-pill px-3 hover-bg-light d-flex align-items-center">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Prev
+                </a>
+                <a href="?month={{ month|add:1 }}&year={{ year }}"
+                   class="btn btn-light rounded-pill px-3 hover-bg-light d-flex align-items-center">
+                    Next
+                    <i class="fas fa-arrow-right ms-2"></i>
+                </a>
+                {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
+                    <button onclick="window.print()"
+                            class="btn btn-light rounded-pill px-3 hover-bg-light d-flex align-items-center">
+                        <i class="fas fa-print"></i>
+                    </button>
                 {% endif %}
-                </tbody>
-            </table>
+            </div>
+
+            <!-- Alerts Section -->
+            {% include 'partials/_alerts.html' %}
+
+            <!-- Bills Table Card -->
+            <div class="card border-1 shadow-m">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle compact-table">
+                            <thead>
+                            <tr class="bg-light">
+                                <th>Owner</th>
+                                <th>Apt</th>
+                                <th>Elec</th>
+                                <th>Clean</th>
+                                <th>El.Elec</th>
+                                <th>El.Mnt</th>
+                                <th>En.Mnt</th>
+                                <th>Total</th>
+                                <th>Chng</th>
+                                <th>Month</th>
+                                {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
+                                    <th class="act">Act</th>
+                                {% else %}
+                                    <th class="act">Paid</th>
+                                {% endif %}
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% if bills %}
+                                {% for bill in bills %}
+                                    <tr class="border-bottom">
+                                        <td title="{{ bill.apartment.owner.full_name }}">
+                                            {{ bill.apartment.owner.full_name|truncatechars:20 }}
+                                        </td>
+                                        <td>{{ bill.apartment.number }}</td>
+                                        <td>{{ bill.electricity }}</td>
+                                        <td>{{ bill.cleaning }}</td>
+                                        <td>{{ bill.elevator_electricity }}</td>
+                                        <td>{{ bill.elevator_maintenance }}</td>
+                                        <td>{{ bill.entrance_maintenance }}</td>
+                                        <td class="fw-bold">{{ bill.total_bill }}</td>
+                                        <td>{{ bill.change }}</td>
+                                        <td>{{ bill.for_month }}</td>
+                                        {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
+                                            <td class="act" style="text-align: center">
+                                                {% if not bill.is_paid %}
+                                                    <button type="button"
+                                                            class="btn btn-primary btn-xs rounded-pill"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#payModal"
+                                                            data-bill-id="{{ bill.id }}"
+                                                            title="Pay Bill">
+                                                        <i class="fas fa-money-bill-wave"></i>
+                                                    </button>
+                                                {% else %}
+                                                    <span class="badge bg-success rounded-pill" title="Paid">
+                                                    <i class="fas fa-check"></i>
+                                                </span>
+                                                {% endif %}
+                                            </td>
+                                        {% else %}
+                                            <td class="act">
+                                                {% if bill.is_paid %}
+                                                    <span class="badge bg-success rounded-pill" title="Paid">
+                                                    <i class="fas fa-check"></i>
+                                                </span>
+                                                {% else %}
+                                                    <span class="badge bg-danger rounded-pill" title="Not Paid">
+                                                    <i class="fas fa-times"></i>
+                                                </span>
+                                                {% endif %}
+                                            </td>
+                                        {% endif %}
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="11" class="text-center py-4 text-muted">
+                                        <i class="fas fa-folder-open me-2"></i>
+                                        No bills found
+                                    </td>
+                                </tr>
+                            {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Payment Modal -->
-    <div class="modal fade" id="payModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="payModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title">Enter Payment</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white border-0">
+                    <h5 class="modal-title">
+                        <i class="fas fa-money-bill-wave me-2"></i>
+                        Enter Payment
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
                 </div>
                 <form method="post" id="payForm" action="{% url 'pay_bill' 0 %}">
                     {% csrf_token %}
-                    <div class="modal-body">
+                    <div class="modal-body p-4">
                         <input type="hidden" name="month" value="{{ month }}">
                         <input type="hidden" name="year" value="{{ year }}">
                         <div class="mb-3">
                             <label for="sum" class="form-label">Payment Amount</label>
-                            <input type="number" name="sum" id="sum" class="form-control" step="any" required>
+                            <div class="input-group">
+                                <span class="input-group-text border-0 bg-light">
+                                    <i class="fas fa-money-bill text-primary"></i>
+                                </span>
+                                <input type="number"
+                                       name="sum"
+                                       id="sum"
+                                       class="form-control border-0 bg-light"
+                                       step="any"
+                                       required>
+                            </div>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Submit Payment</button>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>
+                            Close
+                        </button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4">
+                            <i class="fas fa-check me-2"></i>
+                            Submit Payment
+                        </button>
                     </div>
                 </form>
             </div>

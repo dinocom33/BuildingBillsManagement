@@ -9,10 +9,10 @@
     /* Ensure the table container is visible */
     #table-container {
         visibility: visible;
-        position: absolute;
+        /*position: absolute;*/
         top: 0;
-        left: 0;
-        width: 100%;
+        /*left: 0;*/
+        /*width: 100%;*/
     }
 
     /* Hide all other elements */
@@ -24,15 +24,19 @@
         visibility: visible;
     }
 
+    .btn, .act, .modal, .no-print, .navigation-controls, .badge{
+        display: none !important;
+    }
+
     /* Hide navigation buttons in print */
-    #navigation-buttons, h1 {
+    #navigation-buttons, h1, h2 {
         display: none !important;
     }
 
     /* Adjust table for A4 landscape page size */
     table {
         width: 100%;
-        /*border-collapse: collapse;*/
+        border-collapse: collapse;
         border: 2px solid black !important; /* Outer border of the table */
     }
 

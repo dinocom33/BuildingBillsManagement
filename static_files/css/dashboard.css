@@ -1,0 +1,173 @@
+/* Custom styles for dashboard */
+.dashboard-container {
+    background-color: #f8f9fa;
+    min-height: calc(100vh - 70px);
+    padding: 20px 0;
+}
+
+.hover-bg-light:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Table styles */
+.table th {
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.table td {
+    font-size: 0.95rem;
+    vertical-align: middle;
+}
+
+/* Button and badge styles */
+.btn {
+    transition: all 0.2s ease;
+}
+
+.badge {
+    font-weight: 500;
+}
+
+/* Modal styles */
+.modal-content {
+    border-radius: 15px;
+}
+
+.modal-header {
+    border-radius: 15px 15px 0 0;
+}
+
+.input-group-text,
+.form-control {
+    padding: 0.75rem 1rem;
+}
+
+/*@media print {*/
+/*    !* Reset and basic setup *!*/
+/*    * {*/
+/*        margin: 0;*/
+/*        padding: 0;*/
+/*        box-sizing: border-box;*/
+/*    }*/
+
+/*    html, body {*/
+/*        width: 297mm; !* A4 landscape width *!*/
+/*        height: 210mm; !* A4 landscape height *!*/
+/*        margin: 0;*/
+/*        padding: 0;*/
+/*        font-size: 9pt; !* Standard print font size *!*/
+/*        background-color: white;*/
+/*    }*/
+
+/*    !* Page setup *!*/
+/*    @page {*/
+/*        size: A4 landscape;*/
+/*        margin: 15mm 10mm; !* Top/bottom 15mm, left/right 10mm margins *!*/
+/*    }*/
+
+/*    !* Hide unnecessary elements *!*/
+/*    .dashboard-container {*/
+/*        padding: 0 !important;*/
+/*        margin: 0 !important;*/
+/*        background: white !important;*/
+/*    }*/
+
+/*    .btn,*/
+/*    .modal,*/
+/*    .no-print,*/
+/*    .navigation-controls,*/
+/*    .card {*/
+/*        display: none !important;*/
+/*    }*/
+
+/*    !* Keep only essential elements *!*/
+/*    .table-responsive,*/
+/*    .table-responsive * {*/
+/*        visibility: visible !important;*/
+/*        display: table !important;*/
+/*    }*/
+
+/*    !* Table styling *!*/
+/*    .compact-table {*/
+/*        width: 100%;*/
+/*        border-collapse: collapse;*/
+/*        table-layout: fixed; !* Fixed layout for better control *!*/
+/*    }*/
+
+/*    !* Column widths for A4 landscape *!*/
+/*    .compact-table th:nth-child(1) { width: 18%; }  !* Owner *!*/
+/*    .compact-table th:nth-child(2) { width: 5%; }   !* Apt *!*/
+/*    .compact-table th:nth-child(3) { width: 8%; }   !* Elec *!*/
+/*    .compact-table th:nth-child(4) { width: 8%; }   !* Clean *!*/
+/*    .compact-table th:nth-child(5) { width: 8%; }   !* El.Elec *!*/
+/*    .compact-table th:nth-child(6) { width: 8%; }   !* El.Mnt *!*/
+/*    .compact-table th:nth-child(7) { width: 8%; }   !* En.Mnt *!*/
+/*    .compact-table th:nth-child(8) { width: 9%; }   !* Total *!*/
+/*    .compact-table th:nth-child(9) { width: 8%; }   !* Chng *!*/
+/*    .compact-table th:nth-child(10) { width: 12%; } !* Month *!*/
+/*    .compact-table th:nth-child(11) { width: 8%; }  !* Status *!*/
+
+/*    !* Cell styling *!*/
+/*    .compact-table th,*/
+/*    .compact-table td {*/
+/*        padding: 4pt 6pt;*/
+/*        border: 0.5pt solid #000;*/
+/*        text-align: left;*/
+/*        overflow: hidden;*/
+/*        text-overflow: ellipsis;*/
+/*        white-space: nowrap;*/
+/*    }*/
+
+/*    !* Header styling *!*/
+/*    .compact-table th {*/
+/*        background-color: #f0f0f0 !important;*/
+/*        -webkit-print-color-adjust: exact;*/
+/*        print-color-adjust: exact;*/
+/*        font-weight: bold;*/
+/*        font-size: 8pt;*/
+/*        text-transform: uppercase;*/
+/*    }*/
+
+/*    !* Numeric column alignment *!*/
+/*    .compact-table td:nth-child(3),*/
+/*    .compact-table td:nth-child(4),*/
+/*    .compact-table td:nth-child(5),*/
+/*    .compact-table td:nth-child(6),*/
+/*    .compact-table td:nth-child(7),*/
+/*    .compact-table td:nth-child(8),*/
+/*    .compact-table td:nth-child(9) {*/
+/*        text-align: right;*/
+/*    }*/
+
+/*    !* Status indicators *!*/
+/*    .badge {*/
+/*        border-radius: 3pt;*/
+/*        padding: 2pt 4pt;*/
+/*        font-size: 8pt;*/
+/*    }*/
+
+/*    .badge.bg-success {*/
+/*        background-color: #28a745 !important;*/
+/*        -webkit-print-color-adjust: exact;*/
+/*        print-color-adjust: exact;*/
+/*        color: white !important;*/
+/*    }*/
+
+/*    .badge.bg-danger {*/
+/*        background-color: #dc3545 !important;*/
+/*        -webkit-print-color-adjust: exact;*/
+/*        print-color-adjust: exact;*/
+/*        color: white !important;*/
+/*    }*/
+
+/*    !* Ensure no page breaks within rows *!*/
+/*    .compact-table tr {*/
+/*        page-break-inside: avoid;*/
+/*    }*/
+/*}*/
