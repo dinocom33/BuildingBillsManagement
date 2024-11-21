@@ -5,102 +5,55 @@
 {% block title %}Dashboard{% endblock title %}
 
 {% block content %}
-    <section class="mb-5 mt-5 pb-4">
-        <div class="container mt-4">
-            <div class="text-center mb-4" id="navigation-buttons">
-                {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
-                    <button type="button" class="btn btn-outline-danger mx-2" data-bs-toggle="modal"
-                            data-bs-target="#addMessageModal" id="add-message">
-                        <i class="fas fa-plus-circle"></i> Add Message
-                    </button>
-                {% endif %}
-            </div>
-
-            {% include 'partials/_alerts.html' %}
-
-            {% if all_messages %}
-                <div class="row">
-                    {% for message in all_messages %}
-                        <div class="col-lg-4 col-md-6 mb-4">
-                            <div class="card h-100 shadow-sm">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ message.title }}</h5>
-                                    <p class="card-text">{{ message.text | truncatechars:70 }}</p>
-                                    <button type="button" class="btn btn-outline-primary mt-2"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#viewMessageModal"
-                                            data-message-id="{{ message.id }}"
-                                            data-message-title="{{ message.title }}"
-                                            data-message-text="{{ message.text }}"
-                                            id="view-message-{{ message.id }}">
-                                        <i class="fas fa-eye"></i> Read more
-                                    </button>
-                                </div>
-                                <div class="card-footer text-muted">
-                                    Posted on: {{ message.created_at|date:"M d, Y" }}
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <h3 class="text-center mt-4">No messages found</h3>
+    <div class="container py-4" id="table-container">
+        <!-- Add Message Button -->
+        <div class="d-flex justify-content-center gap-3 mb-4" id="navigation-buttons">
+            {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
+                <button type="button" 
+                        class="btn btn-danger rounded-pill px-3 hover-bg-danger d-flex align-items-center"
+                        data-bs-toggle="modal" data-bs-target="#addMessageModal" id="add-message">
+                    <i class="fas fa-plus-circle me-2"></i>
+                    Add Message
+                </button>
             {% endif %}
         </div>
 
-        <!-- Modal for Adding Message -->
-        <div class="modal fade" id="addMessageModal" tabindex="-1" aria-labelledby="addMessageModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title" id="addMessageModalLabel">Enter the Message Details</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <form method="post" action="{% url 'building:create_message' %}">
-                        {% csrf_token %}
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <label for="title" class="form-label">Title</label>
-                                <input type="text" name="title" id="title" class="form-control" placeholder="Enter message title here" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="text" class="form-label">Message text</label>
-                                <textarea name="text" id="text" class="form-control" rows="6" placeholder="Enter message text here" required></textarea>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary">Add Message</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+        <!-- Alerts -->
+        {% include 'partials/_alerts.html' %}
 
-        <!-- Modal for View Message -->
-        <div class="modal fade" id="viewMessageModal" tabindex="-1" aria-labelledby="viewMessageModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title" id="viewMessageModalLabel">Message Details</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="message-title" class="form-label">Title</label>
-                            <input type="text" id="message-title" class="form-control" readonly />
+        <!-- Messages Section -->
+        {% if all_messages %}
+            <div class="row">
+                {% for message in all_messages %}
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title fw-bold">{{ message.title }}</h5>
+                                <p class="card-text">{{ message.text|truncatechars:70 }}</p>
+                                <button type="button" 
+                                        class="btn btn-primary rounded-pill px-3 hover-bg-primary mt-2"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#viewMessageModal"
+                                        data-message-id="{{ message.id }}"
+                                        data-message-title="{{ message.title }}"
+                                        data-message-text="{{ message.text }}">
+                                    <i class="fas fa-eye me-2"></i>
+                                    Read More
+                                </button>
+                            </div>
+                            <div class="card-footer text-muted">
+                                Posted on: {{ message.date|date:"M d, Y" }}
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="message-text" class="form-label">Message text</label>
-                            <textarea id="message-text" class="form-control" readonly></textarea>
-                        </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    </div>
-                </div>
+                {% endfor %}
             </div>
-        </div>
+        {% else %}
+            <h3 class="text-center text-muted mt-4">
+                <i class="fas fa-folder-open me-2"></i>
+                No messages found
+            </h3>
+        {% endif %}
 
         <!-- Pagination -->
         {% if all_messages.has_other_pages %}
@@ -148,7 +101,78 @@
                 </nav>
             </div>
         {% endif %}
-    </section>
+    </div>
+
+    <!-- Modal for Adding Message -->
+    <div class="modal fade" id="addMessageModal" tabindex="-1" aria-labelledby="addMessageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white border-0">
+                    <h5 class="modal-title">
+                        <i class="fas fa-envelope me-2"></i>
+                        Enter the Message Details
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" action="{% url 'building:create_message' %}">
+                    {% csrf_token %}
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Title</label>
+                            <input type="text" name="title" id="title" 
+                                   class="form-control border-0 bg-light" placeholder="Enter message title here" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="text" class="form-label">Message Text</label>
+                            <textarea name="text" id="text" 
+                                      class="form-control border-0 bg-light" rows="6" placeholder="Enter message text here" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>
+                            Close
+                        </button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4">
+                            <i class="fas fa-check me-2"></i>
+                            Add Message
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Viewing Message -->
+    <div class="modal fade" id="viewMessageModal" tabindex="-1" aria-labelledby="viewMessageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white border-0">
+                    <h5 class="modal-title">
+                        <i class="fas fa-eye me-2"></i>
+                        Message Details
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label for="message-title" class="form-label">Title</label>
+                        <input type="text" id="message-title" class="form-control border-0 bg-light" readonly />
+                    </div>
+                    <div class="mb-3">
+                        <label for="message-text" class="form-label">Message Text</label>
+                        <textarea id="message-text" class="form-control border-0 bg-light" rows="6" readonly></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Modularized JavaScript -->
     <script src="{% static 'js/auto_resize.js' %}"></script>
