@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
 
+from building.models import Apartment
 from .forms import CustomUserCreationForm, CustomUserChangeForm
 
 User = get_user_model()
@@ -11,7 +12,7 @@ class CustomUserAdmin(UserAdmin):
     add_form = CustomUserCreationForm
     form = CustomUserChangeForm
     model = User
-    list_display = ("full_name", "email", "get_groups", "is_staff", "is_active",)
+    list_display = ("full_name", "email", "get_groups", "is_staff", "is_active", "get_apartment")
     list_filter = ("email", "is_staff", "is_active",)
     list_display_links = ("full_name", "email",)
     fieldsets = (
@@ -38,6 +39,12 @@ class CustomUserAdmin(UserAdmin):
         return ", ".join([group.name for group in obj.groups.all()])
 
     get_groups.short_description = 'Groups'
+
+    def get_apartment(self, obj):
+        apartment = Apartment.objects.filter(owner=obj).first()
+        return apartment
+
+    get_apartment.short_description = 'Apartment'
 
 
 admin.site.register(User, CustomUserAdmin)
