@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
+from django.db.models import Subquery, OuterRef
 
 from building.models import Apartment
 from .forms import CustomUserCreationForm, CustomUserChangeForm
@@ -12,7 +13,7 @@ class CustomUserAdmin(UserAdmin):
     add_form = CustomUserCreationForm
     form = CustomUserChangeForm
     model = User
-    list_display = ("full_name", "email", "get_groups", "is_staff", "is_active", "get_apartment")
+    list_display = ("full_name", "email", "get_apartment", "get_groups", "is_staff", "is_active")
     list_filter = ("email", "is_staff", "is_active",)
     list_display_links = ("full_name", "email",)
     fieldsets = (
@@ -30,7 +31,12 @@ class CustomUserAdmin(UserAdmin):
         ),
     )
     search_fields = ("email",)
-    ordering = ("email",)
+    ordering = (
+        Subquery(
+            Apartment.objects.filter(owner=OuterRef('pk'))
+            .values('number')[:1]
+        ),
+    )
 
     def full_name(self, obj):
         return f"{obj.first_name} {obj.last_name}"
