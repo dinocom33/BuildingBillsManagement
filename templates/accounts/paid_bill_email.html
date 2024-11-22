@@ -7,84 +7,143 @@
     <title>Bill Payment Confirmation</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            color: #333;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            color: #495057;
         }
-        .container {
-            max-width: 600px;
-            margin: 20px auto;
-            background-color: #fff;
+
+        .email-wrapper {
+            width: 100%;
+            background-color: #f8f9fa;
             padding: 20px;
+        }
+
+        .email-content {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
         }
-        h2 {
-            color: #4CAF50;
+
+        .email-header {
+            background-color: #0d6efd;
+            padding: 20px;
             text-align: center;
+            color: #ffffff;
         }
+
+        .email-header h2 {
+            margin: 0;
+            font-size: 24px;
+            line-height: 1.5;
+            font-weight: bold;
+        }
+
+        .email-body {
+            padding: 30px;
+            font-size: 16px;
+            line-height: 1.7;
+            color: #495057;
+        }
+
+        .email-body p {
+            margin: 0 0 20px;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
+
         th, td {
             padding: 10px;
-            border: 1px solid #dddddd;
+            border: 1px solid #dee2e6;
             text-align: left;
         }
+
         th {
-            background-color: #f4f4f4;
+            background-color: #f8f9fa;
+            color: #212529;
         }
+
         .total {
             font-weight: bold;
-            color: #4CAF50;
+            color: #0d6efd;
+        }
+
+        .email-footer {
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+            background-color: #f8f9fa;
+            color: #868e96;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Bill Payment Confirmation</h2>
-        <p>Dear <strong>{{ user.first_name }} {{ user.last_name }}</strong>,</p>
-        <p>You have successfully paid the bill for apartment {{ apartment_number }} for the month of {{ month }}/{{ year }}.</p>
-        <table>
-            <tr>
-                <th>Service</th>
-                <th>Amount (lv)</th>
-            </tr>
-            <tr>
-                <td>Electricity</td>
-                <td>{{ electricity|floatformat:2 }} lv</td>
-            </tr>
-            <tr>
-                <td>Cleaning</td>
-                <td>{{ cleaning|floatformat:2 }} lv</td>
-            </tr>
-            <tr>
-                <td>Elevator Electricity</td>
-                <td>{{ elevator_electricity|floatformat:2 }} lv</td>
-            </tr>
-            <tr>
-                <td>Elevator Maintenance</td>
-                <td>{{ elevator_maintenance|floatformat:2 }} lv</td>
-            </tr>
-            <tr>
-                <td>Entrance Maintenance</td>
-                <td>{{ entrance_maintenance|floatformat:2 }} lv</td>
-            </tr>
-            <tr class="total">
-                <td>Total Sum</td>
-                <td>{{ total|floatformat:2 }} lv</td>
-            </tr>
-            <tr class="total">
-                <td>Change</td>
-                <td>{{ change|floatformat:2 }} lv</td>
-            </tr>
-        </table>
-        <p>Thank you for your prompt payment!</p>
-        <p>Sincerely,</p>
-        <p>The Management</p>
+<div class="email-wrapper">
+    <div class="email-content">
+        <!-- Email Header -->
+        <div class="email-header">
+            <h2>Bill Payment Confirmation</h2>
+        </div>
+
+        <!-- Email Body -->
+        <div class="email-body">
+            <p>Dear <strong>{{ user.first_name }} {{ user.last_name }}</strong>,</p>
+            <p>You have successfully paid the bill for apartment <strong>{{ apartment_number }}</strong> for the month of <strong>{{ month }}/{{ year }}</strong>.</p>
+
+            <table>
+                <tr>
+                    <th>Service</th>
+                    <th>Amount (lv)</th>
+                </tr>
+                <tr>
+                    <td>Electricity</td>
+                    <td>{{ electricity|floatformat:2 }} lv</td>
+                </tr>
+                <tr>
+                    <td>Cleaning</td>
+                    <td>{{ cleaning|floatformat:2 }} lv</td>
+                </tr>
+                <tr>
+                    <td>Elevator Electricity</td>
+                    <td>{{ elevator_electricity|floatformat:2 }} lv</td>
+                </tr>
+                <tr>
+                    <td>Elevator Maintenance</td>
+                    <td>{{ elevator_maintenance|floatformat:2 }} lv</td>
+                </tr>
+                <tr>
+                    <td>Entrance Maintenance</td>
+                    <td>{{ entrance_maintenance|floatformat:2 }} lv</td>
+                </tr>
+                <tr class="total">
+                    <td>Total Sum</td>
+                    <td>{{ total|floatformat:2 }} lv</td>
+                </tr>
+                <tr class="total">
+                    <td>Change</td>
+                    <td>{{ change|floatformat:2 }} lv</td>
+                </tr>
+            </table>
+
+            <p>Thank you for your prompt payment!</p>
+            <p>Sincerely,</p>
+            <p>The Management</p>
+        </div>
+
+        <!-- Email Footer -->
+        <div class="email-footer">
+            <p>You are receiving this email because you are registered as a resident in this building.</p>
+        </div>
     </div>
+</div>
 </body>
 </html>
 {% endautoescape %}
