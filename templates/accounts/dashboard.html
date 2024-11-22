@@ -42,7 +42,7 @@
             {% include 'partials/_alerts.html' %}
 
             <!-- Bills Table Card -->
-            <div class="card border-1 shadow-m">
+            <div class="card border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0 align-middle compact-table">
@@ -85,7 +85,7 @@
                                             <td class="act" style="text-align: center">
                                                 {% if not bill.is_paid %}
                                                     <button type="button"
-                                                            class="btn btn-primary btn-xs rounded-pill"
+                                                            class="btn btn-primary btn-sm hover-bg-success rounded-pill"
                                                             data-bs-toggle="modal"
                                                             data-bs-target="#payModal"
                                                             data-bill-id="{{ bill.id }}"
@@ -94,20 +94,20 @@
                                                     </button>
                                                 {% else %}
                                                     <span class="badge bg-success rounded-pill" title="Paid">
-                                                    <i class="fas fa-check"></i>
-                                                </span>
+                                        <i class="fas fa-check"></i>
+                                    </span>
                                                 {% endif %}
                                             </td>
                                         {% else %}
                                             <td class="act">
                                                 {% if bill.is_paid %}
                                                     <span class="badge bg-success rounded-pill" title="Paid">
-                                                    <i class="fas fa-check"></i>
-                                                </span>
+                                        <i class="fas fa-check"></i>
+                                    </span>
                                                 {% else %}
                                                     <span class="badge bg-danger rounded-pill" title="Not Paid">
-                                                    <i class="fas fa-times"></i>
-                                                </span>
+                                        <i class="fas fa-times"></i>
+                                    </span>
                                                 {% endif %}
                                             </td>
                                         {% endif %}
@@ -149,9 +149,9 @@
                         <div class="mb-3">
                             <label for="sum" class="form-label">Payment Amount</label>
                             <div class="input-group">
-                                <span class="input-group-text border-0 bg-light">
-                                    <i class="fas fa-money-bill text-primary"></i>
-                                </span>
+                            <span class="input-group-text border-0 bg-light">
+                                <i class="fas fa-money-bill text-primary"></i>
+                            </span>
                                 <input type="number"
                                        name="sum"
                                        id="sum"

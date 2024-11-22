@@ -16,19 +16,19 @@
         <!-- Add Apartment, Building, Entrance Buttons -->
         <div class="d-flex justify-content-center gap-3 mb-4" id="navigation-buttons">
             {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
-                <button type="button" 
+                <button type="button"
                         class="btn btn-danger rounded-pill px-3 hover-bg-danger d-flex align-items-center"
                         data-bs-toggle="modal" data-bs-target="#addBuildingModal" id="add-building">
                     <i class="fas fa-plus me-2"></i>
                     Add Building
                 </button>
-                <button type="button" 
+                <button type="button"
                         class="btn btn-danger rounded-pill px-3 hover-bg-danger d-flex align-items-center"
                         data-bs-toggle="modal" data-bs-target="#addEntranceModal" id="add-entrance">
                     <i class="fas fa-plus me-2"></i>
                     Add Entrance
                 </button>
-                <button type="button" 
+                <button type="button"
                         class="btn btn-danger rounded-pill px-3 hover-bg-danger d-flex align-items-center"
                         data-bs-toggle="modal" data-bs-target="#addApartmentModal" id="add-apartment">
                     <i class="fas fa-plus me-2"></i>
@@ -37,11 +37,12 @@
             {% endif %}
         </div>
 
+        {% include 'partials/_alerts.html' %}
+
         <!-- Apartments Table Card -->
-        <div class="card border-0 shadow-sm">
+        <div class="card border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    {% include 'partials/_alerts.html' %}
                     <table class="table table-hover mb-0 align-middle compact-table" style="text-align: center">
                         <thead class="bg-light">
                         <tr>
@@ -87,34 +88,37 @@
                         <i class="fas fa-home me-2"></i>
                         Enter the Apartment Details
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
                 </div>
                 <form method="post" action="{% url 'building:create_apartment' %}">
                     {% csrf_token %}
                     <div class="modal-body p-4">
                         <div class="mb-3">
                             <label for="building" class="form-label">Building</label>
-                            <input name="building" id="building" type="number" step=1 
+                            <input name="building" id="building" type="number" step=1
                                    placeholder="Enter building number" class="form-control border-0 bg-light" required/>
                         </div>
                         <div class="mb-3">
                             <label for="entrance" class="form-label">Entrance</label>
-                            <input name="entrance" type="text" id="entrance" 
-                                   placeholder="Enter entrance number/letter" class="form-control border-0 bg-light" required/>
+                            <input name="entrance" type="text" id="entrance"
+                                   placeholder="Enter entrance number/letter" class="form-control border-0 bg-light"
+                                   required/>
                         </div>
                         <div class="mb-3">
                             <label for="floor" class="form-label">Floor</label>
-                            <input name="floor" type="number" id="floor" 
+                            <input name="floor" type="number" id="floor"
                                    placeholder="Enter floor number" class="form-control border-0 bg-light" required/>
                         </div>
                         <div class="mb-3">
                             <label for="number" class="form-label">Number</label>
-                            <input name="number" type="number" id="number" step=1 
-                                   placeholder="Enter apartment number" class="form-control border-0 bg-light" required/>
+                            <input name="number" type="number" id="number" step=1
+                                   placeholder="Enter apartment number" class="form-control border-0 bg-light"
+                                   required/>
                         </div>
                         <div class="mb-3">
                             <label for="owner" class="form-label">Owner</label>
-                            <input name="owner" type="email" id="owner" 
+                            <input name="owner" type="email" id="owner"
                                    placeholder="Enter apartment owner" class="form-control border-0 bg-light" required/>
                         </div>
                     </div>
@@ -142,20 +146,22 @@
                         <i class="fas fa-building me-2"></i>
                         Enter the Building Details
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
                 </div>
                 <form method="post" action="{% url 'building:create_building' %}">
                     {% csrf_token %}
                     <div class="modal-body p-4">
                         <div class="mb-3">
                             <label for="number" class="form-label">Building Number</label>
-                            <input name="number" id="number" type="number" step=1 
+                            <input name="number" id="number" type="number" step=1
                                    placeholder="Enter building number" class="form-control border-0 bg-light" required/>
                         </div>
                         <div class="mb-3">
                             <label for="address" class="form-label">Address</label>
-                            <textarea name="address" id="address" 
-                                      placeholder="Enter building's address" class="form-control border-0 bg-light" required></textarea>
+                            <textarea name="address" id="address"
+                                      placeholder="Enter building's address" class="form-control border-0 bg-light"
+                                      required></textarea>
                         </div>
                     </div>
                     <div class="modal-footer border-0">
@@ -182,20 +188,22 @@
                         <i class="fas fa-door-open me-2"></i>
                         Enter the Entrance Details
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
                 </div>
                 <form method="post" action="{% url 'building:create_entrance' %}">
                     {% csrf_token %}
                     <div class="modal-body p-4">
                         <div class="mb-3">
                             <label for="name" class="form-label">Name</label>
-                            <input name="name" id="name" type="text" 
+                            <input name="name" id="name" type="text"
                                    placeholder="Enter entrance name" class="form-control border-0 bg-light" required/>
                         </div>
                         <div class="mb-3">
                             <label for="building" class="form-label">Building</label>
-                            <input name="building" id="building" type="number" step=1 
-                                   placeholder="Enter building's number" class="form-control border-0 bg-light" required/>
+                            <input name="building" id="building" type="number" step=1
+                                   placeholder="Enter building's number" class="form-control border-0 bg-light"
+                                   required/>
                         </div>
                     </div>
                     <div class="modal-footer border-0">
