@@ -93,6 +93,8 @@
             <h2>Bill Payment Confirmation</h2>
         </div>
 
+        <hr>
+
         <!-- Email Body -->
         <div class="email-body">
             <p>Dear <strong>{{ user.first_name }} {{ user.last_name }}</strong>,</p>
@@ -132,6 +134,8 @@
                     <td>{{ change|floatformat:2 }} lv</td>
                 </tr>
             </table>
+            
+            <br>
 
             <p>Thank you for your prompt payment!</p>
             <p>Sincerely,</p>
