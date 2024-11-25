@@ -36,6 +36,7 @@
                             <th>Name</th>
                             <th>Email</th>
                             <th>Apartment</th>
+                            <th>Floor</th>
                             <th>Entrance</th>
                             <th>Building</th>
                         </tr>
@@ -47,6 +48,7 @@
                                     <td>{{ apartment.owner.full_name }}</td>
                                     <td>{{ apartment.owner.email }}</td>
                                     <td>{{ apartment.number }}</td>
+                                    <td>{{ apartment.floor }}</td>
                                     <td>{{ entrance }}</td>
                                     <td>{{ building }}</td>
                                 </tr>
@@ -81,35 +83,80 @@
                 <form method="post" action="{% url 'create_resident' %}">
                     {% csrf_token %}
                     <div class="modal-body p-4">
-                        <div class="mb-3">
-                            <label for="first_name" class="form-label">First Name</label>
-                            <input name="first_name" id="first_name" type="text"
-                                   placeholder="Enter resident's first name" class="form-control border-0 bg-light"
-                                   required/>
+                        <!-- First and Last Name -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="first_name" class="form-label">First Name</label>
+                                <input name="first_name" id="first_name" type="text"
+                                       placeholder="Enter first name" class="form-control border-0 bg-light" required/>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="last_name" class="form-label">Last Name</label>
+                                <input name="last_name" id="last_name" type="text"
+                                       placeholder="Enter last name" class="form-control border-0 bg-light" required/>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="last_name" class="form-label">Last Name</label>
-                            <input name="last_name" type="text" id="last_name"
-                                   placeholder="Enter resident's last name" class="form-control border-0 bg-light"
-                                   required/>
-                        </div>
+
+                        <!-- Email -->
                         <div class="mb-3">
                             <label for="email" class="form-label">Email</label>
-                            <input name="email" type="email" id="email"
+                            <input name="email" id="email" type="email"
                                    placeholder="Enter resident's email" class="form-control border-0 bg-light"
                                    required/>
                         </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <input name="password" type="password" id="password"
-                                   placeholder="Enter password" class="form-control border-0 bg-light" required/>
+
+                        <!-- Password and Password Confirmation -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="password" class="form-label">Password</label>
+                                <input name="password" id="password" type="password"
+                                       placeholder="Enter password" class="form-control border-0 bg-light" required/>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="password2" class="form-label">Repeat Password</label>
+                                <input name="password2" id="password2" type="password"
+                                       placeholder="Repeat password" class="form-control border-0 bg-light" required/>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="password2" class="form-label">Repeat Password</label>
-                            <input name="password2" type="password" id="password2"
-                                   placeholder="Enter password again" class="form-control border-0 bg-light" required/>
+
+                        <!-- Building and Entrance -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="building" class="form-label">Building Number</label>
+                                <input name="building" id="building" type="number" step="1"
+                                       placeholder="Enter building number" class="form-control border-0 bg-light"
+                                       required/>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="entrance" class="form-label">Entrance Number</label>
+                                <input name="entrance" id="entrance" type="text"
+                                       placeholder="Enter entrance number" class="form-control border-0 bg-light"
+                                       required/>
+                            </div>
+                        </div>
+
+                        <!-- Floor and Apartment -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="floor" class="form-label">Floor Number</label>
+                                <input name="floor" id="floor" type="number" step="1"
+                                       placeholder="Enter floor number" class="form-control border-0 bg-light"
+                                       required/>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="apartment" class="form-label">Apartment Number</label>
+                                <input name="apartment" id="apartment" type="number" step="1"
+                                       placeholder="Enter apartment number" class="form-control border-0 bg-light"
+                                       required/>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="address" class="form-label">Address</label>
+                            <textarea name="address" id="address" class="form-control border-0 bg-light"
+                                      required placeholder="Enter building's address" rows="5"></textarea>
                         </div>
                     </div>
+
                     <div class="modal-footer border-0">
                         <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">
                             <i class="fas fa-times me-2"></i>

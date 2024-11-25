@@ -20,7 +20,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
 from BuildingBillsManagement import settings
 from accounts.decorators import group_required
-from building.models import Apartment, ApartmentBill, TotalMaintenanceAmount
+from building.models import Apartment, ApartmentBill, TotalMaintenanceAmount, Building, Entrance
 from ensure_celery_running import ensure_celery_running
 from .forms import MyAccountUpdateForm
 from .tasks import send_email_task
@@ -48,6 +48,11 @@ def register(request):
         email = request.POST['email']
         password = request.POST['password']
         password2 = request.POST['password2']
+        building_number = request.POST['building']
+        entrance_name = request.POST['entrance']
+        floor = request.POST['floor']
+        apartment_number = request.POST['apartment']
+        address = request.POST['address']
 
         if not first_name or not last_name or not email or not password or not password2:
             messages.error(request, 'All fields are required')
@@ -61,10 +66,21 @@ def register(request):
             messages.error(request, 'Passwords do not match')
             return redirect('residents')
 
-        new_user = User.objects.create_user(first_name=first_name, last_name=last_name, email=email, password=password)
+        new_user = User.objects.create(first_name=first_name, last_name=last_name, email=email, password=password)
 
         new_user.is_active = False
         new_user.save()
+
+        building = Building.objects.get_or_create(number=building_number, address=address)
+        entrance = Entrance.objects.get_or_create(name=entrance_name, building_id=building[0].id)
+
+        if Apartment.objects.filter(building_id=building[0].id, entrance_id=entrance[0].id, floor=floor,
+                                    number=apartment_number).exists():
+            messages.error(request, 'Apartment already exists')
+            return redirect('residents')
+
+        Apartment.objects.create(building_id=building[0].id, entrance_id=entrance[0].id, floor=floor,
+                                             number=apartment_number, owner=new_user)
 
         from_email = settings.EMAIL_HOST_USER
         to_list = [new_user.email]
@@ -351,20 +367,24 @@ def residents(request):
             if all_apartments.exists():
                 building = all_apartments.first().building
                 entrance = all_apartments.first().entrance
+                floor = all_apartments.first().floor
             else:
                 building = None
                 entrance = None
+                floor = None
 
         else:
             # Use owner's entrance and building
             entrance = owner.entrance
             building = entrance.building
             all_apartments = entrance.apartments.all()
+            floor = all_apartments.first().floor
 
         context = {
             'apartments': all_apartments,
             'entrance': entrance,
             'building': building,
+            'floor': floor,
             'no_data': len(all_apartments) == 0
         }
 

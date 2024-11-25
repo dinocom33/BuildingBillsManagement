@@ -10,7 +10,8 @@ class Building(models.Model):
     number = models.IntegerField()
     address = models.CharField(max_length=100)
 
-    # num_of_entrances = models.IntegerField()
+    class Meta:
+        unique_together = ('number', 'address')
 
     def __str__(self):
         return str(self.number)
@@ -22,6 +23,7 @@ class Entrance(models.Model):
 
     class Meta:
         ordering = ['name']
+        unique_together = ('name', 'building')
 
     # floors = models.IntegerField()
     # num_of_apartments = models.IntegerField()
@@ -39,6 +41,7 @@ class Apartment(models.Model):
 
     class Meta:
         ordering = ['number']
+        # unique_together = ('number', 'building', 'entrance', 'floor', 'owner')
 
     # bill = models.ForeignKey('ApartmentBill', on_delete=models.CASCADE, null=True, related_name='apartment')
 
