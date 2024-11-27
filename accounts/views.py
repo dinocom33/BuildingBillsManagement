@@ -52,7 +52,7 @@ def register(request):
         entrance_name = request.POST['entrance']
         floor = request.POST['floor']
         apartment_number = request.POST['apartment']
-        address = request.POST['address']
+        # address = request.POST['address']
 
         if not first_name or not last_name or not email or not password or not password2:
             messages.error(request, 'All fields are required')
@@ -71,7 +71,7 @@ def register(request):
         new_user.is_active = False
         new_user.save()
 
-        building = Building.objects.get_or_create(number=building_number, address=address)
+        building = Building.objects.get_or_create(number=building_number)
         entrance = Entrance.objects.get_or_create(name=entrance_name, building_id=building[0].id)
 
         if Apartment.objects.filter(building_id=building[0].id, entrance_id=entrance[0].id, floor=floor,
