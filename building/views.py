@@ -6,10 +6,13 @@ from dateutil.relativedelta import relativedelta
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils.decorators import method_decorator
+from django.views.generic import View
 
 from accounts.decorators import group_required
 from ensure_celery_running import ensure_celery_running
@@ -238,21 +241,29 @@ def bills(request):
     return render(request, 'building/bills.html', context)
 
 
-@login_required
-@group_required('manager')
-@ensure_celery_running
-def create_bill(request):
-    if request.method == 'POST':
-        user = request.user
-        total_electricity = request.POST['total_electricity']
-        total_cleaning = request.POST['total_cleaning']
-        total_elevator_electricity = request.POST['total_elevator_electricity']
-        total_elevator_maintenance = request.POST['total_elevator_maintenance']
-        total_entrance_maintenance = request.POST['total_entrance_maintenance']
-        building = user.owner.filter(entrance__isnull=False).first().entrance.building
-        entrance = user.owner.filter(entrance__isnull=False).first().entrance
-        for_month = request.POST['for_month'].strip()
+class CreateBillView(LoginRequiredMixin, UserPassesTestMixin, View):
+    template_name = 'building/bills.html'
+    login_url = 'login'
 
+    def test_func(self):
+        """
+        Restricts access to users belonging to the 'manager' group or superusers.
+        """
+        return self.request.user.groups.filter(name='manager').exists() or self.request.user.is_superuser
+
+    @method_decorator(ensure_celery_running)
+    def post(self, request, *args, **kwargs):
+        user = request.user
+
+        # Extract data from POST
+        total_electricity = request.POST.get('total_electricity')
+        total_cleaning = request.POST.get('total_cleaning')
+        total_elevator_electricity = request.POST.get('total_elevator_electricity')
+        total_elevator_maintenance = request.POST.get('total_elevator_maintenance')
+        total_entrance_maintenance = request.POST.get('total_entrance_maintenance')
+        for_month = request.POST.get('for_month', '').strip()
+
+        # Validate and process month input
         try:
             current_month = datetime.strptime(for_month[:7], "%Y-%m")
         except ValueError as e:
@@ -262,13 +273,24 @@ def create_bill(request):
         next_month = current_month + relativedelta(months=1)
         next_month_str = next_month.strftime("%Y-%m")
 
-        building_id = Building.objects.filter(number=building.number).first().id
-        entrance_id = Entrance.objects.filter(name=entrance.name).first().id
-
-        if Bill.objects.filter(for_month=for_month, building__id=building_id, entrance__id=entrance_id).exists():
-            messages.error(request, 'Bill already exists')
+        # Fetch building and entrance
+        owner_apartment = user.owner.filter(entrance__isnull=False).first()
+        if not owner_apartment:
+            messages.error(request, 'You do not have a valid entrance or building.')
             return redirect('building:bills')
 
+        building = owner_apartment.entrance.building
+        entrance = owner_apartment.entrance
+
+        building_id = building.id
+        entrance_id = entrance.id
+
+        # Check if the bill already exists
+        if Bill.objects.filter(for_month=for_month, building_id=building_id, entrance_id=entrance_id).exists():
+            messages.error(request, 'Bill already exists.')
+            return redirect('building:bills')
+
+        # Create the bill
         Bill.objects.create(
             total_electricity=float(total_electricity),
             total_cleaning=float(total_cleaning),
@@ -280,6 +302,7 @@ def create_bill(request):
             for_month=for_month
         )
 
+        # Handle Total Maintenance Amount
         total_maintenance_amount = TotalMaintenanceAmount.objects.filter(
             building=building,
             entrance=entrance,
@@ -294,6 +317,7 @@ def create_bill(request):
                 for_month=for_month,
             )
 
+        # Create maintenance amount for the next month
         TotalMaintenanceAmount.objects.create(
             amount=total_maintenance_amount.amount,
             building_id=building_id,
@@ -301,9 +325,13 @@ def create_bill(request):
             for_month=next_month_str,
         )
 
+        # Prepare data for apartment bills and notifications
         apartments = Apartment.objects.filter(entrance=entrance)
-        apartments_ids = list(apartments.values_list('id', flat=True))
+        if not apartments.exists():
+            messages.error(request, 'No apartments found for this entrance.')
+            return redirect('building:bills')
 
+        apartments_ids = list(apartments.values_list('id', flat=True))
         ap_el = float(total_electricity) / len(apartments)
         ap_clean = float(total_cleaning) / len(apartments)
         ap_elev_el = float(total_elevator_electricity) / len(apartments)
@@ -321,10 +349,9 @@ def create_bill(request):
             'Entrance maintenance: {entrance_maintenance:.2f}lv \n'
             'Total sum: {total:.2f}lv'
         )
-
         from_email = os.getenv('EMAIL_HOST_USER')
 
-        # Call the task to create bills for all apartments
+        # Trigger asynchronous task for creating apartment bills
         create_apartment_bills_task.delay(
             apartments_ids,
             for_month,
@@ -338,10 +365,15 @@ def create_bill(request):
             from_email
         )
 
-        messages.success(request, 'Bill created successfully')
+        messages.success(request, 'Bill created successfully.')
         return redirect('building:bills')
 
-    return render(request, 'building/bills.html')
+    def get(self, request, *args, **kwargs):
+        """
+        Handles the GET request to render the bill creation page.
+        """
+        return render(request, self.template_name)
+
 
 
 @login_required
