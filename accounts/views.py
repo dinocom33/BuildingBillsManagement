@@ -2,21 +2,27 @@ import os
 from datetime import datetime
 from decimal import Decimal
 
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate, login
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.views import PasswordResetView
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import PasswordResetView, PasswordChangeView
 from django.contrib.messages.context_processors import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.core.mail import EmailMessage
 from django.core.paginator import Paginator
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages, auth
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
+from django.utils.crypto import get_random_string
+from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.views import View
+from django.views.generic import UpdateView, TemplateView, ListView
 
 from BuildingBillsManagement import settings
 from accounts.decorators import group_required
@@ -38,23 +44,24 @@ def get_building_entrance_apartments(user):
     return [building, entrance, apartments]
 
 
-@login_required
-@group_required('manager')
-def register(request):
-    if request.method == 'POST':
+@method_decorator(login_required, name='dispatch')
+@method_decorator(group_required('manager'), name='dispatch')  # Replace `group_required` decorator with your actual implementation
+class RegisterView(View):
+    template_name = 'accounts/residents.html'
 
-        first_name = request.POST['first_name']
-        last_name = request.POST['last_name']
-        email = request.POST['email']
-        password = request.POST['password']
-        password2 = request.POST['password2']
-        building_number = request.POST['building']
-        entrance_name = request.POST['entrance']
-        floor = request.POST['floor']
-        apartment_number = request.POST['apartment']
-        # address = request.POST['address']
+    def get(self, request):
+        return render(request, self.template_name)
 
-        if not first_name or not last_name or not email or not password or not password2:
+    def post(self, request):
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        building_number = request.POST.get('building')
+        entrance_name = request.POST.get('entrance')
+        floor = request.POST.get('floor')
+        apartment_number = request.POST.get('apartment')
+
+        if not first_name or not last_name or not email:
             messages.error(request, 'All fields are required')
             return redirect('residents')
 
@@ -62,28 +69,36 @@ def register(request):
             messages.error(request, 'Email already exists')
             return redirect('residents')
 
-        if password != password2:
-            messages.error(request, 'Passwords do not match')
-            return redirect('residents')
+        # Generate a random password
+        password = get_random_string(length=12)
 
-        new_user = User.objects.create(first_name=first_name, last_name=last_name, email=email, password=password)
-
+        # Create new user
+        new_user = User.objects.create_user(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            password=password
+        )
         new_user.is_active = False
         new_user.save()
 
-        building = Building.objects.get_or_create(number=building_number)
-        entrance = Entrance.objects.get_or_create(name=entrance_name, building_id=building[0].id)
+        # Handle building and apartment relationships
+        building, _ = Building.objects.get_or_create(number=building_number)
+        entrance, _ = Entrance.objects.get_or_create(name=entrance_name, building_id=building.id)
 
-        if Apartment.objects.filter(building_id=building[0].id, entrance_id=entrance[0].id, floor=floor,
-                                    number=apartment_number).exists():
+        if Apartment.objects.filter(building_id=building.id, entrance_id=entrance.id, floor=floor, number=apartment_number).exists():
             messages.error(request, 'Apartment already exists')
             return redirect('residents')
 
-        Apartment.objects.create(building_id=building[0].id, entrance_id=entrance[0].id, floor=floor,
-                                             number=apartment_number, owner=new_user)
+        Apartment.objects.create(
+            building_id=building.id,
+            entrance_id=entrance.id,
+            floor=floor,
+            number=apartment_number,
+            owner=new_user
+        )
 
-        from_email = settings.EMAIL_HOST_USER
-        to_list = [new_user.email]
+        # Send confirmation email
         current_site = get_current_site(request)
         email_subject = "You are invited to join Building Bills Management System"
         message = render_to_string('email_confirmation.html', {
@@ -98,192 +113,262 @@ def register(request):
             settings.EMAIL_HOST_USER,
             [new_user.email],
         )
-        send_mail(email_subject, message, from_email, to_list, fail_silently=True)
+        send_mail(email_subject, message, settings.EMAIL_HOST_USER, [new_user.email], fail_silently=True)
 
-        messages.success(request, 'Account created successfully. Email has been sent with confirmation link')
+        messages.success(request, 'Account created successfully. Email has been sent with a confirmation link')
         return redirect('residents')
 
-    return render(request, 'accounts/residents.html')
+
+class ActivateAccountView(View):
+    template_name_failure = 'activation_failed.html'
+
+    def get(self, request, uidb64, token):
+        try:
+            # Decode the user ID and fetch the user
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+
+        # Verify the token and activate the account if valid
+        if user is not None and generate_token.check_token(user, token):
+            self.activate_user(user, request)
+            return redirect('password_reset')
+
+        # Render the failure template if activation fails
+        return render(request, self.template_name_failure)
+
+    def activate_user(self, user, request):
+        """Activate the user account and log them in."""
+        user.is_active = True
+        user.save()
+        # login(request, user)
+        messages.success(request, "Your Account has been activated! Please reset your password to continue.")
 
 
-def activate(request, uidb64, token):
-    try:
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        myuser = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        myuser = None
+class LoginView(View):
+    template_name = 'accounts/login.html'
 
-    if myuser is not None and generate_token.check_token(myuser, token):
-        myuser.is_active = True
-        # user.profile.signup_confirmation = True
-        myuser.save()
-        login(request)
-        messages.success(request, "Your Account has been activated!! Please reset your password to continue")
-        return redirect('password_reset')
-    else:
-        return render(request, 'activation_failed.html')
+    def get(self, request):
+        # Redirect authenticated users to the dashboard
+        if request.user.is_authenticated:
+            return redirect('dashboard')
+        return render(request, self.template_name)
 
+    def post(self, request):
+        # Handle login form submission
+        if request.user.is_authenticated:
+            return redirect('dashboard')
 
-def login(request):
-    if request.user.is_authenticated:
-        return redirect('dashboard')
-
-    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
         next_url = request.POST.get('next')
-
-        email = request.POST['email']
-        password = request.POST['password']
 
         if not email or not password:
             messages.error(request, 'All fields are required')
             return redirect('login')
 
-        user = User.objects.filter(email=email).first()
-
-        if not user or not user.check_password(password):
+        # Authenticate the user
+        user = authenticate(request, email=email, password=password)
+        if user is None:
             messages.error(request, 'Wrong username or password')
             return redirect('login')
 
-        auth.login(request, user)
+        # Log the user in
+        login(request, user)  # Use the correct import
         messages.success(request, f'Welcome {user.first_name} {user.last_name}')
 
-        if next_url:
-            return redirect(next_url)
-        else:
-            return redirect('dashboard')
-
-    return render(request, 'accounts/login.html')
+        # Redirect to the next URL or dashboard
+        return redirect(next_url) if next_url else redirect('dashboard')
 
 
-@login_required
-def profile(request):
-    form = MyAccountUpdateForm(instance=request.user)
+class ProfileView(LoginRequiredMixin, UpdateView):
+    model = User
+    form_class = MyAccountUpdateForm
+    template_name = 'accounts/profile.html'
+    success_url = reverse_lazy('profile')
 
-    if request.method == 'POST':
-        form = MyAccountUpdateForm(request.POST, instance=request.user)
+    def get_object(self, queryset=None):
+        # Return the currently logged-in user
+        return self.request.user
 
-        if User.objects.filter(email=request.POST['email']).exists() and request.user.email != request.POST['email']:
-            messages.error(request, 'The Email you entered already exists')
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Add the password change form to the context
+        if 'password_form' not in kwargs:
+            context['password_form'] = PasswordChangeForm(user=self.request.user)
+        return context
 
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Profile updated successfully')
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if 'old_password' in request.POST:
+            # Handle password change form submission
+            password_form = PasswordChangeForm(user=self.request.user, data=request.POST)
+            if password_form.is_valid():
+                password_form.save()
+                messages.success(request, 'Your password has been updated successfully.')
+                return redirect(self.success_url)
+            else:
+                messages.error(request, 'Please correct the errors below.')
+                return self.render_to_response(self.get_context_data(password_form=password_form))
+        return super().post(request, *args, **kwargs)
 
-    return render(request, 'accounts/profile.html', {'form': form})
 
 
-@login_required
-def logout(request):
-    if request.method == 'POST':
+@method_decorator(login_required, name='dispatch')
+class LogoutView(View):
+    def post(self, request):
         auth.logout(request)
         messages.success(request, 'Logout successful')
         return redirect('login')
 
 
-@login_required
-def dashboard(request):
-    now = datetime.now()
+@method_decorator(login_required, name='dispatch')
+class DashboardView(TemplateView):
+    template_name = 'accounts/dashboard.html'
 
-    selected_month = request.GET.get('month')
-    selected_year = request.GET.get('year')
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        now = datetime.now()
 
-    if selected_month and selected_year:
-        selected_month = int(selected_month)
-        selected_year = int(selected_year)
-    else:
-        if now.month == 1:
-            selected_month = 12
-            selected_year = now.year - 1
+        # Retrieve selected month and year from query parameters
+        selected_month = self.request.GET.get('month')
+        selected_year = self.request.GET.get('year')
+
+        if selected_month and selected_year:
+            selected_month = int(selected_month)
+            selected_year = int(selected_year)
         else:
+            # Default to the previous month
+            if now.month == 1:
+                selected_month = 12
+                selected_year = now.year - 1
+            else:
+                selected_month = now.month - 1
+                selected_year = now.year
+
+        # Adjust edge cases for months
+        if selected_month == 0:
+            selected_month = 12
+            selected_year -= 1
+        elif selected_month == 13:
+            selected_month = 1
+            selected_year += 1
+
+        # Fetch the logged-in user
+        user = self.request.user
+        apartment = Apartment.objects.filter(owner=user).first()
+
+        # Handle users with no associated apartment
+        if not apartment:
             selected_month = now.month - 1
             selected_year = now.year
+            messages.error(self.request, 'You have no building, entrance, and apartment associated with your account')
+            context.update({
+                'month': selected_month,
+                'year': selected_year,
+            })
+            return context
 
-    if selected_month == 0:
-        selected_month = 12
-        selected_year -= 1
-    elif selected_month == 13:
-        selected_month = 1
-        selected_year += 1
+        # Retrieve building, entrance, and apartments
+        building = apartment.building
+        entrance = apartment.entrance
+        apartments = Apartment.objects.filter(building=building, entrance=entrance)
 
-    user = request.user
-    apartment = Apartment.objects.filter(owner=user).first()
+        # Fetch bills for the selected month and year
+        apartment_bills = ApartmentBill.objects.filter(
+            apartment__building=building,
+            apartment__entrance=entrance,
+            for_month__month=selected_month,
+            for_month__year=selected_year
+        )
 
-    if not apartment:
-        selected_month = now.month - 1
-        selected_year = now.year
-        messages.error(request, 'You have no building, entrance and apartment associated with your account')
-        return render(request, 'accounts/dashboard.html', {'month': selected_month, 'year': selected_year})
-
-    building = apartment.building
-    entrance = apartment.entrance
-    apartments = Apartment.objects.filter(building=building, entrance=entrance)
-
-    apartment_bills = ApartmentBill.objects.filter(
-        apartment__building=building,
-        apartment__entrance=entrance,
-        for_month__month=selected_month,
-        for_month__year=selected_year
-    )
-
-    context = {
-        'entrance': entrance,
-        'apartments': apartments,
-        'bills': apartment_bills,
-        'month': selected_month,
-        'year': selected_year,
-    }
-
-    return render(request, 'accounts/dashboard.html', context)
+        # Populate context
+        context.update({
+            'entrance': entrance,
+            'apartments': apartments,
+            'bills': apartment_bills,
+            'month': selected_month,
+            'year': selected_year,
+        })
+        return context
 
 
-@login_required(redirect_field_name='next', login_url='login')
-def my_bills(request):
-    user = request.user
-    apartment = Apartment.objects.filter(owner=user).first()
+class MyBillsView(LoginRequiredMixin, ListView):
+    model = ApartmentBill
+    template_name = 'accounts/my_bills.html'
+    context_object_name = 'bills'
+    paginate_by = 10
+    login_url = 'login'
+    redirect_field_name = 'next'
 
-    paginator = Paginator(ApartmentBill.objects.filter(apartment__owner=user), 10)
+    def get_queryset(self):
+        """
+        Return bills filtered by the current user's apartment.
+        """
+        user = self.request.user
+        return ApartmentBill.objects.filter(apartment__owner=user)
 
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    def get_context_data(self, **kwargs):
+        """
+        Add the user's apartment to the context.
+        """
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        context['apartment'] = get_object_or_404(Apartment, owner=user)
+        return context
 
-    context = {
-        'bills': page_obj,
-        'apartment': apartment
-    }
 
-    return render(request, 'accounts/my_bills.html', context)
+@method_decorator([login_required, group_required('manager'), ensure_celery_running], name='dispatch')
+class PayBillView(View):
+    template_name = 'accounts/dashboard.html'
 
-
-@login_required
-@group_required('manager')
-@ensure_celery_running
-def pay_bill(request, bill_id):
-    if request.method == 'POST':
-        apartment_bill = ApartmentBill.objects.get(id=bill_id)
+    def post(self, request, bill_id):
+        # Fetch the apartment bill
+        apartment_bill = get_object_or_404(ApartmentBill, id=bill_id)
         given_sum = request.POST.get('sum')
         month = request.POST.get('month', '')
         year = request.POST.get('year', '')
         total_maintenance_amount = TotalMaintenanceAmount.objects.filter(
-            building__entrance=apartment_bill.apartment.entrance).first()
+            building__entrance=apartment_bill.apartment.entrance
+        ).first()
 
+        # Validate given sum
         if not given_sum:
-            messages.error(request, 'Sum is required')
-            return redirect(f'{reverse("dashboard")}?month={month}&year={year}')
+            return self._handle_error('Sum is required', month, year)
 
         given_sum = Decimal(given_sum) + apartment_bill.change
 
         if given_sum <= 0:
-            messages.error(request, 'Sum must be greater than 0')
-            return redirect(f'{reverse("dashboard")}?month={month}&year={year}')
+            return self._handle_error('Sum must be greater than 0', month, year)
 
         if given_sum < apartment_bill.total_bill() - Decimal('0.001'):
-            messages.error(request, 'Sum must be greater than or equal to total bill')
-            return redirect(f'{reverse("dashboard")}?month={month}&year={year}')
+            return self._handle_error('Sum must be greater than or equal to total bill', month, year)
 
         if apartment_bill.is_paid:
-            messages.error(request, 'Bill already paid')
-            return redirect(f'{reverse("dashboard")}?month={month}&year={year}')
+            return self._handle_error('Bill already paid', month, year)
 
+        # Process the bill payment
+        self._process_payment(apartment_bill, given_sum, total_maintenance_amount)
+
+        # Send confirmation email
+        self._send_confirmation_email(apartment_bill, month, year)
+
+        # Redirect to dashboard with success message
+        messages.success(request, 'Bill paid successfully')
+        return redirect(f'{reverse("dashboard")}?month={month}&year={year}')
+
+    def get(self, request, *args, **kwargs):
+        # Redirect to the dashboard if accessed via GET
+        return render(request, self.template_name)
+
+    def _handle_error(self, error_message, month, year):
+        """Handle validation errors by showing a message and redirecting."""
+        messages.error(self.request, error_message)
+        return redirect(f'{reverse("dashboard")}?month={month}&year={year}')
+
+    def _process_payment(self, apartment_bill, given_sum, total_maintenance_amount):
+        """Process the bill payment and update relevant records."""
         if given_sum >= apartment_bill.total_bill():
             apartment_bill.change = given_sum - apartment_bill.total_bill()
         else:
@@ -292,24 +377,26 @@ def pay_bill(request, bill_id):
         apartment_bill.is_paid = True
         apartment_bill.save()
 
+        # Apply change to the next month's bill if applicable
         if apartment_bill.change > 0:
-            current_month_bill = ApartmentBill.objects.filter(
+            next_month_bill = ApartmentBill.objects.filter(
                 apartment=apartment_bill.apartment,
                 for_month__gt=apartment_bill.for_month
             ).order_by('for_month').first()
 
-            if current_month_bill:
-                current_month_bill.change += apartment_bill.change
-                apartment_bill.change = 0
+            if next_month_bill:
+                next_month_bill.change += apartment_bill.change
+                apartment_bill.change = Decimal('0.0')
                 apartment_bill.save()
-                current_month_bill.save()
+                next_month_bill.save()
 
-        total_maintenance_amount.amount += apartment_bill.entrance_maintenance
-        total_maintenance_amount.save()
+        # Update the total maintenance amount
+        if total_maintenance_amount:
+            total_maintenance_amount.amount += apartment_bill.entrance_maintenance
+            total_maintenance_amount.save()
 
-        messages.success(request, 'Bill paid successfully')
-
-        # Prepare the context for the HTML email
+    def _send_confirmation_email(self, apartment_bill, month, year):
+        """Prepare and send a confirmation email."""
         context = {
             'apartment_number': apartment_bill.apartment.number,
             'month': month,
@@ -324,10 +411,8 @@ def pay_bill(request, bill_id):
             'user': apartment_bill.apartment.owner
         }
 
-        # Render the HTML email template
         html_email_content = render_to_string('accounts/paid_bill_email.html', context)
 
-        # Send the email using the modified send_email_task
         send_email_task.delay(
             subject='You paid a bill',
             html_content=html_email_content,
@@ -335,74 +420,81 @@ def pay_bill(request, bill_id):
             recipient_list=[apartment_bill.apartment.owner.email],
         )
 
-        return redirect(f'{reverse("dashboard")}?month={month}&year={year}')
 
-    return render(request, 'accounts/dashboard.html')
+@method_decorator([login_required, group_required('manager')], name='dispatch')
+class ResidentsView(TemplateView):
+    template_name = 'accounts/residents.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        try:
+            # Fetch user data
+            owner = self._get_owner_with_entrance()
 
-@login_required
-@group_required('manager')
-def residents(request):
-    try:
-        # First, try to get owner with entrance
-        owner = (
-            request.user.owner
+            if owner and owner.entrance:
+                # Owner with an entrance
+                entrance = owner.entrance
+                building = entrance.building
+                all_apartments = entrance.apartments.all()
+                floor = all_apartments.first().floor if all_apartments.exists() else None
+            else:
+                # No owner or entrance, fetch apartments created by user
+                all_apartments, building, entrance, floor = self._get_apartments_without_owner()
+
+            context.update({
+                'apartments': all_apartments,
+                'entrance': entrance,
+                'building': building,
+                'floor': floor,
+                'no_data': len(all_apartments) == 0
+            })
+
+            # Add a message if no apartments are found
+            if len(all_apartments) == 0:
+                messages.info(self.request, 'No residents found.')
+
+        except Exception as e:
+            # Handle any unexpected errors
+            messages.error(self.request, f'An error occurred: {str(e)}')
+            context.update({
+                'apartments': [],
+                'entrance': None,
+                'building': None,
+                'error': str(e)
+            })
+
+        return context
+
+    def _get_owner_with_entrance(self):
+        """Fetch the owner's entrance and related data."""
+        return (
+            self.request.user.owner
             .select_related('entrance__building')
             .prefetch_related('entrance__apartments')
             .filter(entrance__isnull=False)
             .first()
         )
 
-        # If no owner or no entrance, find apartments created by the current user
-        if not owner or not owner.entrance:
-            # Find apartments in buildings where the user has created entrances
-            all_apartments = Apartment.objects.filter(
-                building__entrance__apartments__isnull=False
-            ).select_related(
-                'building',
-                'entrance'
-            ).distinct()
+    def _get_apartments_without_owner(self):
+        """Fetch apartments when the user does not have an associated entrance."""
+        all_apartments = Apartment.objects.filter(
+            building__entrance__apartments__isnull=False
+        ).select_related(
+            'building',
+            'entrance'
+        ).distinct()
 
-            # Determine building and entrance
-            if all_apartments.exists():
-                building = all_apartments.first().building
-                entrance = all_apartments.first().entrance
-                floor = all_apartments.first().floor
-            else:
-                building = None
-                entrance = None
-                floor = None
-
+        if all_apartments.exists():
+            first_apartment = all_apartments.first()
+            building = first_apartment.building
+            entrance = first_apartment.entrance
+            floor = first_apartment.floor
         else:
-            # Use owner's entrance and building
-            entrance = owner.entrance
-            building = entrance.building
-            all_apartments = entrance.apartments.all()
-            floor = all_apartments.first().floor
+            building = None
+            entrance = None
+            floor = None
 
-        context = {
-            'apartments': all_apartments,
-            'entrance': entrance,
-            'building': building,
-            'floor': floor,
-            'no_data': len(all_apartments) == 0
-        }
-
-        # Add a message if no apartments are found
-        if len(all_apartments) == 0:
-            messages.info(request, 'No residents found.')
-
-    except Exception as e:
-        # Handle any unexpected errors
-        messages.error(request, f'An error occurred: {str(e)}')
-        context = {
-            'apartments': [],
-            'entrance': None,
-            'building': None,
-            'error': str(e)
-        }
-
-    return render(request, 'accounts/residents.html', context)
+        return all_apartments, building, entrance, floor
 
 
 class ResetPasswordView(SuccessMessageMixin, PasswordResetView):

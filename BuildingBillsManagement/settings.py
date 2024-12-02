@@ -130,6 +130,6 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Europe/Sofia'
 
-LOGIN_URL = '/accounts/login/'
+LOGIN_URL = '/residents/login/'
 
 # CSRF_TRUSTED_ORIGINS = ['https://11ab-78-90-113-174.ngrok-free.app']
