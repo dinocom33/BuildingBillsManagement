@@ -530,40 +530,54 @@ def create_expense(request):
 @ensure_celery_running
 def add_message(request):
     if request.method == 'POST':
-        title = request.POST['title']
-        text = request.POST['text']
+        title = request.POST.get('title', '').strip()
+        text = request.POST.get('text', '').strip()
+        uploaded_file = request.FILES.get('file', None)
         user = request.user
         building = user.owner.filter(entrance__isnull=False).first().entrance.building
         entrance = user.owner.filter(entrance__isnull=False).first().entrance
         all_residents = User.objects.filter(owner__entrance=entrance)
 
-        # Save the message to the database
-        Message.objects.create(
+        # Validate file type
+        if uploaded_file:
+            valid_mime_types = [
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'image/jpeg',
+                'image/png',
+            ]
+
+            if uploaded_file.content_type not in valid_mime_types:
+                messages.error(request, 'Invalid file type. Allowed types: PDF, Word, Images.')
+                return redirect('building:messages')
+
+        # Create and save the message
+        message = Message.objects.create(
             title=title,
             text=text,
             building=building,
-            entrance=entrance
+            entrance=entrance,
+            file=uploaded_file
         )
 
         email_subject = f'New message from {building.number} building'
-
         protocol = 'https' if request.is_secure() else 'http'
         domain = request.get_host()
-
-        # Construct the dashboard link
         dashboard_link = f'{protocol}://{domain}/building/messages/'
 
         # Render the HTML email template
         email_html_message = render_to_string('building/new_message_email.html', {
             'title': title,
             'text': text,
+            'file': uploaded_file,
             'building': building,
             'entrance': entrance,
             'user': user,
             'dashboard_link': dashboard_link,
         })
 
-        # Send email task with HTML content
+        # Send email task
         send_message_email_task.delay(
             email_subject,
             email_html_message,
@@ -575,6 +589,7 @@ def add_message(request):
         return redirect('building:messages')
 
     return render(request, 'building/messages.html')
+
 
 
 @login_required

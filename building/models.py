@@ -138,10 +138,19 @@ class Message(models.Model):
     entrance = models.ForeignKey(Entrance, on_delete=models.CASCADE, related_name='message')
     title = models.CharField(max_length=100)
     text = models.TextField()
+    file = models.FileField(upload_to='messages/files/', null=True, blank=True)
     date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-date']
+
+    def is_file_type_valid(self):
+        valid_mime_types = ['application/pdf', 'application/msword',
+                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg',
+                            'image/png']
+        if self.file:
+            return self.file.file.content_type in valid_mime_types
+        return True
 
     def __str__(self):
         return str(self.title)
