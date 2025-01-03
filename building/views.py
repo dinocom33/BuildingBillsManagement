@@ -114,9 +114,9 @@ def create_apartment(request):
 
         # Check if apartment already exists
         if Apartment.objects.filter(
-            building=building_obj,
-            entrance=entrance_obj,
-            number=number
+                building=building_obj,
+                entrance=entrance_obj,
+                number=number
         ).exists():
             messages.error(request, 'Apartment already exists')
             return redirect('building:apartments')
@@ -375,7 +375,6 @@ class CreateBillView(LoginRequiredMixin, UserPassesTestMixin, View):
         return render(request, self.template_name)
 
 
-
 @login_required
 def manage_expenses(request):
     now = datetime.now()
@@ -387,12 +386,8 @@ def manage_expenses(request):
         selected_month = int(selected_month)
         selected_year = int(selected_year)
     else:
-        if now.month == 1:
-            selected_month = 12
-            selected_year = now.year - 1
-        else:
-            selected_month = now.month
-            selected_year = now.year
+        selected_month = now.month
+        selected_year = now.year
 
     if selected_month == 0:
         selected_month = 12
@@ -406,9 +401,12 @@ def manage_expenses(request):
         building = user.owner.filter(entrance__isnull=False).first().entrance.building
         entrance = user.owner.filter(entrance__isnull=False).first().entrance
         total_maintenance_amount = TotalMaintenanceAmount.objects.filter(building=building, entrance=entrance,
-                                                                         for_month__month=selected_month).order_by(
+                                                                         for_month__month=selected_month,
+                                                                         for_month__year=selected_year).order_by(
             '-id').first()
-        expenses = Expense.objects.filter(building=building, entrance=entrance, for_month__month=selected_month).order_by(
+        expenses = Expense.objects.filter(building=building, entrance=entrance,
+                                          for_month__month=selected_month,
+                                          for_month__year=selected_year).order_by(
             '-id')
 
         if total_maintenance_amount:
@@ -589,7 +587,6 @@ def add_message(request):
         return redirect('building:messages')
 
     return render(request, 'building/messages.html')
-
 
 
 @login_required
