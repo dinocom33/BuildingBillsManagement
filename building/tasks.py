@@ -18,31 +18,41 @@ def create_apartment_bill_task(apartment_id, for_month, total_electricity, total
         print(f"Apartment with ID {apartment_id} not found.")
         return None
 
-    total_electricity = Decimal(total_electricity)
-    total_cleaning = Decimal(total_cleaning)
-    total_elevator_electricity = Decimal(total_elevator_electricity)
-    total_elevator_maintenance = Decimal(total_elevator_maintenance)
-    total_entrance_maintenance = Decimal(total_entrance_maintenance)
+    # Convert all amounts to Decimal
+    total_electricity = Decimal(str(total_electricity))
+    total_cleaning = Decimal(str(total_cleaning))
+    total_elevator_electricity = Decimal(str(total_elevator_electricity))
+    total_elevator_maintenance = Decimal(str(total_elevator_maintenance))
+    total_entrance_maintenance = Decimal(str(total_entrance_maintenance))
+    last_change = Decimal(str(last_change))
 
-    # Calculate total amount
+    # Calculate total amount and subtract last_change
     total_amount = (
         total_electricity + total_cleaning + total_elevator_electricity +
         total_elevator_maintenance + total_entrance_maintenance
     )
 
+    if last_change > total_amount:
+        last_change -= total_amount
+        total_amount = Decimal('0.0')
+    else:
+        total_amount -= last_change
+
     # Create the bill
     apartment_bill = ApartmentBill.objects.create(
         apartment=apartment,
         for_month=for_month,
-        change=last_change,
         electricity=total_electricity,
         cleaning=total_cleaning,
         elevator_electricity=total_elevator_electricity,
         elevator_maintenance=total_elevator_maintenance,
         entrance_maintenance=total_entrance_maintenance,
+        total=total_amount,
+        change=last_change if total_amount == Decimal('0.0') else Decimal('0'),  # Set initial change to 0 since we've applied last_change to total
+        is_paid=False if total_amount != Decimal('0.0') else True,
     )
 
-    # Define the context to be passed to the HTML and plain-text templates
+    # Define the context with all relevant information including last_change
     context = {
         'apartment_number': apartment.number,
         'for_month': for_month,
@@ -51,6 +61,7 @@ def create_apartment_bill_task(apartment_id, for_month, total_electricity, total
         'elevator_electricity': total_elevator_electricity,
         'elevator_maintenance': total_elevator_maintenance,
         'entrance_maintenance': total_entrance_maintenance,
+        'previous_balance': last_change,
         'total': total_amount,
     }
 
@@ -61,7 +72,7 @@ def create_apartment_bill_task(apartment_id, for_month, total_electricity, total
     # Create the email object
     email = EmailMultiAlternatives(
         subject=email_subject,
-        body=plain_text_message,  # Fallback plain text version
+        body=plain_text_message,
         from_email=from_email,
         to=recipient_list,
     )
@@ -89,11 +100,15 @@ def create_apartment_bills_task(apartments_ids, for_month, ap_el, ap_clean, ap_e
                 print(f"Apartment with ID {apartment_id} not found.")
                 continue
 
+            # Get the last bill and its change amount
             last_bill = ApartmentBill.objects.filter(apartment=apartment).order_by('-for_month').first()
-            last_change = last_bill.change if last_bill and last_bill.is_paid else 0
 
+            # Get last_change if the bill is paid (can be positive or negative)
+            last_change = Decimal('0')
             if last_bill and last_bill.is_paid:
-                last_bill.change = 0
+                last_change = last_bill.change
+                # Set change to 0 after retrieving it
+                last_bill.change = Decimal('0')
                 last_bill.save()
 
             # Calculate individual amounts as Decimal
@@ -103,7 +118,16 @@ def create_apartment_bills_task(apartments_ids, for_month, ap_el, ap_clean, ap_e
             elevator_maintenance = Decimal(ap_maint)
             entrance_maintenance = Decimal(entr_maint)
 
-            total_amount = (electricity + cleaning + elevator_electricity + elevator_maintenance + entrance_maintenance)
+            # Calculate initial total
+            total_amount = (electricity + cleaning + elevator_electricity +
+                            elevator_maintenance + entrance_maintenance)
+
+            # Subtract last_change from total_amount (if negative, it will add to total)
+            if last_change > total_amount:
+                last_change -= total_amount
+                total_amount = Decimal('0.0')
+            else:
+                total_amount -= last_change
 
             # Prepare email details
             email_subject = email_subject_template.format(apartment_number=apartment.number)
@@ -115,11 +139,12 @@ def create_apartment_bills_task(apartments_ids, for_month, ap_el, ap_clean, ap_e
                 elevator_electricity=elevator_electricity,
                 elevator_maintenance=elevator_maintenance,
                 entrance_maintenance=entrance_maintenance,
-                total=total_amount
+                previous_balance=last_change,  # Renamed to be more clear
+                total=total_amount,
+                change=last_change
             )
             recipient_list = [apartment.owner.email]
 
-            # Add task to the group
             tasks.append(create_apartment_bill_task.s(
                 apartment.id,
                 for_month,
@@ -135,7 +160,6 @@ def create_apartment_bills_task(apartments_ids, for_month, ap_el, ap_clean, ap_e
                 recipient_list
             ))
 
-    # Execute all tasks as a group
     group(tasks).apply_async()
 
 

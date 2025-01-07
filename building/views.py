@@ -271,6 +271,8 @@ class CreateBillView(LoginRequiredMixin, UserPassesTestMixin, View):
             return redirect('building:bills')
 
         next_month = current_month + relativedelta(months=1)
+        previous_month = current_month - relativedelta(months=1)
+        previous_month_str = previous_month.strftime("%Y-%m")
         next_month_str = next_month.strftime("%Y-%m")
 
         # Fetch building and entrance
@@ -302,28 +304,35 @@ class CreateBillView(LoginRequiredMixin, UserPassesTestMixin, View):
             for_month=for_month
         )
 
-        # Handle Total Maintenance Amount
-        total_maintenance_amount = TotalMaintenanceAmount.objects.filter(
+        # Get maintenance amount from previous month first
+        previous_maintenance_amount = TotalMaintenanceAmount.objects.filter(
             building=building,
             entrance=entrance,
-            for_month=for_month
+            for_month=previous_month_str
         ).order_by('-id').first()
 
-        if not total_maintenance_amount:
-            total_maintenance_amount = TotalMaintenanceAmount.objects.create(
-                amount=Decimal(total_entrance_maintenance),
-                building_id=building_id,
-                entrance_id=entrance_id,
-                for_month=for_month,
-            )
+        # If previous month exists, use that amount, otherwise use the current total_entrance_maintenance
+        maintenance_amount = (
+            previous_maintenance_amount.amount
+            if previous_maintenance_amount
+            else Decimal(total_entrance_maintenance)
+        )
+
+        # Create or update current month's maintenance amount
+        current_maintenance_amount, created = TotalMaintenanceAmount.objects.get_or_create(
+            building=building,
+            entrance=entrance,
+            for_month=for_month,
+            defaults={'amount': maintenance_amount}
+        )
 
         # Create maintenance amount for the next month
-        TotalMaintenanceAmount.objects.create(
-            amount=total_maintenance_amount.amount,
-            building_id=building_id,
-            entrance_id=entrance_id,
-            for_month=next_month_str,
-        )
+        # TotalMaintenanceAmount.objects.create(
+        #     amount=maintenance_amount,
+        #     building_id=building_id,
+        #     entrance_id=entrance_id,
+        #     for_month=next_month_str,
+        # )
 
         # Prepare data for apartment bills and notifications
         apartments = Apartment.objects.filter(entrance=entrance)

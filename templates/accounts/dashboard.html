@@ -3,7 +3,6 @@
 {% load month_tags %}
 
 {% block title %}Dashboard{% endblock title %}
-
 {% block content %}
     <div class="container" id="table-container">
         <!-- Header Section -->
@@ -56,6 +55,7 @@
                                 <th>El.Mnt</th>
                                 <th>En.Mnt</th>
                                 <th>Total</th>
+                                <th>Given amount</th>
                                 <th>Chng</th>
                                 <th>Month</th>
                                 {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
@@ -78,8 +78,11 @@
                                         <td>{{ bill.elevator_electricity }}</td>
                                         <td>{{ bill.elevator_maintenance }}</td>
                                         <td>{{ bill.entrance_maintenance }}</td>
-                                        <td class="fw-bold">{{ bill.total_bill }}</td>
-                                        <td>{{ bill.change }}</td>
+                                        <td class="fw-bold">{{ bill.total }}</td>
+                                        <td class="fw-bold">{{ bill.given_amount }}</td>
+                                        <td class="{% if bill.change > 0 %}text-success{% elif bill.change < 0 %}text-danger{% else %}text-muted{% endif %}">
+                                            {{ bill.change }}
+                                        </td>
                                         <td>{{ bill.for_month }}</td>
                                         {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
                                             <td class="act" style="text-align: center">

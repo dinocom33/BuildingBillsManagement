@@ -29,6 +29,7 @@
                             <th>Elevator Maintenance</th>
                             <th>Entrance Maintenance</th>
                             <th>Total Bill</th>
+                            <th>Given amount</th>
                             <th>Change</th>
                             <th>Month</th>
                             <th>Paid</th>
@@ -45,7 +46,8 @@
                                     <td>{{ bill.elevator_electricity }}</td>
                                     <td>{{ bill.elevator_maintenance }}</td>
                                     <td>{{ bill.entrance_maintenance }}</td>
-                                    <td class="fw-bold">{{ bill.total_bill }}</td>
+                                    <td class="fw-bold">{{ bill.total }}</td>
+                                    <td class="fw-bold">{{ bill.given_amount }}</td>
                                     <td>{{ bill.change }}</td>
                                     <td>{{ bill.for_month }}</td>
                                     <td class="fw-bold" style="color: {{ bill.is_paid|yesno:'#1ba87e,#CC3434' }}">

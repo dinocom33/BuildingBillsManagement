@@ -238,13 +238,8 @@ class DashboardView(TemplateView):
             selected_month = int(selected_month)
             selected_year = int(selected_year)
         else:
-            # Default to the previous month
-            if now.month == 1:
-                selected_month = 12
-                selected_year = now.year - 1
-            else:
-                selected_month = now.month - 1
-                selected_year = now.year
+            selected_month = now.month
+            selected_year = now.year
 
         # Adjust edge cases for months
         if selected_month == 0:
@@ -329,7 +324,9 @@ class PayBillView(View):
         month = request.POST.get('month', '')
         year = request.POST.get('year', '')
         total_maintenance_amount = TotalMaintenanceAmount.objects.filter(
-            building__entrance=apartment_bill.apartment.entrance
+            building__entrance=apartment_bill.apartment.entrance,
+            for_month__month=apartment_bill.for_month.month,
+            for_month__year=apartment_bill.for_month.year
         ).first()
 
         # Validate given sum
@@ -338,11 +335,15 @@ class PayBillView(View):
 
         given_sum = Decimal(given_sum) + apartment_bill.change
 
-        if given_sum <= 0:
+        if given_sum < 0:
             return self._handle_error('Sum must be greater than 0', month, year)
 
-        if given_sum < apartment_bill.total_bill() - Decimal('0.001'):
-            return self._handle_error('Sum must be greater than or equal to total bill', month, year)
+        if given_sum == 0 and apartment_bill.change <= 0:
+            messages.error(self.request, 'Sum must be equal or greater than total sum when there is no change equal or greater than total sum')
+            return redirect(f'{reverse("dashboard")}?month={apartment_bill.for_month.month}&year={apartment_bill.for_month.year}')
+
+        # if given_sum < apartment_bill.total_bill() - Decimal('0.001'):
+        #     return self._handle_error('Sum must be greater than or equal to total bill', month, year)
 
         if apartment_bill.is_paid:
             return self._handle_error('Bill already paid', month, year)
@@ -368,23 +369,34 @@ class PayBillView(View):
 
     def _process_payment(self, apartment_bill, given_sum, total_maintenance_amount):
         """Process the bill payment and update relevant records."""
-        if given_sum >= apartment_bill.total_bill():
-            apartment_bill.change = given_sum - apartment_bill.total_bill()
+
+
+        if given_sum >= apartment_bill.total:
+            apartment_bill.change = given_sum - apartment_bill.total
+        elif given_sum < apartment_bill.total:
+            apartment_bill.change = given_sum - apartment_bill.total
         else:
             apartment_bill.change = Decimal('0.0')
 
         apartment_bill.is_paid = True
+        apartment_bill.given_amount = given_sum
         apartment_bill.save()
 
         # Apply change to the next month's bill if applicable
-        if apartment_bill.change > 0:
+        if apartment_bill.change > 0 or apartment_bill.change < 0:
             next_month_bill = ApartmentBill.objects.filter(
                 apartment=apartment_bill.apartment,
                 for_month__gt=apartment_bill.for_month
             ).order_by('for_month').first()
 
             if next_month_bill:
-                next_month_bill.change += apartment_bill.change
+                # next_month_bill.change += apartment_bill.change
+                if apartment_bill.change > next_month_bill.total:
+                    next_month_bill.change = apartment_bill.change - next_month_bill.total
+                    next_month_bill.total = Decimal('0.0')
+                    next_month_bill.is_paid = True
+                else:
+                    next_month_bill.total -= apartment_bill.change
                 apartment_bill.change = Decimal('0.0')
                 apartment_bill.save()
                 next_month_bill.save()
@@ -405,7 +417,7 @@ class PayBillView(View):
             'elevator_electricity': apartment_bill.elevator_electricity,
             'elevator_maintenance': apartment_bill.elevator_maintenance,
             'entrance_maintenance': apartment_bill.entrance_maintenance,
-            'total': apartment_bill.total_bill(),
+            'total': apartment_bill.total,
             'change': apartment_bill.change,
             'user': apartment_bill.apartment.owner
         }

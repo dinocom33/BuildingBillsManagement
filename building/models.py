@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.contrib.auth import get_user_model
 from month.models import MonthField
 
@@ -57,6 +59,8 @@ class ApartmentBill(models.Model):
     elevator_maintenance = models.DecimalField(default=0, max_digits=10, decimal_places=2)
     entrance_maintenance = models.DecimalField(default=0, max_digits=10, decimal_places=2)
     change = models.DecimalField(default=0, max_digits=10, decimal_places=2)
+    given_amount = models.DecimalField(default=0, max_digits=10, decimal_places=2)
+    total = models.DecimalField(default=Decimal('0.00'), max_digits=10, decimal_places=2)
     for_month = MonthField('Month', null=True)
     is_paid = models.BooleanField(default=False)
 
@@ -70,7 +74,7 @@ class ApartmentBill(models.Model):
         return unicode(self.for_month)
 
     def total_bill(self):
-        return self.electricity + self.cleaning + self.elevator_electricity + self.elevator_maintenance + self.entrance_maintenance
+        return self.electricity + self.cleaning + self.elevator_electricity + self.elevator_maintenance + self.entrance_maintenance - self.change
 
 
 class Bill(models.Model):
