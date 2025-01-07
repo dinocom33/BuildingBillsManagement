@@ -324,9 +324,7 @@ class PayBillView(View):
         month = request.POST.get('month', '')
         year = request.POST.get('year', '')
         total_maintenance_amount = TotalMaintenanceAmount.objects.filter(
-            building__entrance=apartment_bill.apartment.entrance,
-            for_month__month=apartment_bill.for_month.month,
-            for_month__year=apartment_bill.for_month.year
+            building__entrance=apartment_bill.apartment.entrance
         ).first()
 
         # Validate given sum
