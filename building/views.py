@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.paginator import Paginator
+from django.db.models import Sum
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -211,6 +212,7 @@ def bills(request):
             building=building,
             entrance=entrance
         ).order_by('-for_month')
+
 
         # Paginate bills
         paginator = Paginator(all_bills, 10)
@@ -580,7 +582,6 @@ def add_message(request):
             'file': uploaded_file,
             'building': building,
             'entrance': entrance,
-            'user': user,
             'dashboard_link': dashboard_link,
         })
 

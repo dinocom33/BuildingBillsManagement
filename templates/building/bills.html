@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load month_tags %}
+{% load math_filters %}
 
 {% block title %}Bills{% endblock title %}
 
@@ -40,6 +41,7 @@
                             <th>Elevator Maintenance</th>
                             <th>Cleaning</th>
                             <th>Entrance Maintenance</th>
+                            <th>Apartment total</th>
                             <th>Total Bill</th>
                             <th>Month</th>
                         </tr>
@@ -53,6 +55,7 @@
                                     <td>{{ bill.total_elevator_maintenance }}</td>
                                     <td>{{ bill.total_cleaning }}</td>
                                     <td>{{ bill.total_entrance_maintenance }}</td>
+                                    <td>{{ bill.total_bill|div:16|floatformat:2 }}</td>
                                     <td>{{ bill.total_bill }}</td>
                                     <td>{{ bill.for_month }}</td>
                                 </tr>

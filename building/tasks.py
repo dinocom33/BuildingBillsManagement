@@ -5,13 +5,15 @@ from django.db import transaction
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
-from .models import ApartmentBill, Apartment
+from .models import ApartmentBill, Apartment, TotalMaintenanceAmount
 
+# Define chunk size for task group execution
+CHUNK_SIZE = 10
 
 @shared_task
 def create_apartment_bill_task(apartment_id, for_month, total_electricity, total_cleaning, total_elevator_electricity,
                                total_elevator_maintenance, total_entrance_maintenance, last_change, email_subject,
-                               email_message, from_email, recipient_list):
+                               email_message, from_email, recipient_list, total_amount):
     try:
         apartment = Apartment.objects.get(id=apartment_id)
     except Apartment.DoesNotExist:
@@ -25,18 +27,7 @@ def create_apartment_bill_task(apartment_id, for_month, total_electricity, total
     total_elevator_maintenance = Decimal(str(total_elevator_maintenance))
     total_entrance_maintenance = Decimal(str(total_entrance_maintenance))
     last_change = Decimal(str(last_change))
-
-    # Calculate total amount and subtract last_change
-    total_amount = (
-        total_electricity + total_cleaning + total_elevator_electricity +
-        total_elevator_maintenance + total_entrance_maintenance
-    )
-
-    if last_change > total_amount:
-        last_change -= total_amount
-        total_amount = Decimal('0.0')
-    else:
-        total_amount -= last_change
+    total_amount = Decimal(str(total_amount))
 
     # Create the bill
     apartment_bill = ApartmentBill.objects.create(
@@ -48,7 +39,7 @@ def create_apartment_bill_task(apartment_id, for_month, total_electricity, total
         elevator_maintenance=total_elevator_maintenance,
         entrance_maintenance=total_entrance_maintenance,
         total=total_amount,
-        change=last_change if total_amount == Decimal('0.0') else Decimal('0'),  # Set initial change to 0 since we've applied last_change to total
+        change=last_change,
         is_paid=False if total_amount != Decimal('0.0') else True,
     )
 
@@ -100,17 +91,6 @@ def create_apartment_bills_task(apartments_ids, for_month, ap_el, ap_clean, ap_e
                 print(f"Apartment with ID {apartment_id} not found.")
                 continue
 
-            # Get the last bill and its change amount
-            last_bill = ApartmentBill.objects.filter(apartment=apartment).order_by('-for_month').first()
-
-            # Get last_change if the bill is paid (can be positive or negative)
-            last_change = Decimal('0')
-            if last_bill and last_bill.is_paid:
-                last_change = last_bill.change
-                # Set change to 0 after retrieving it
-                last_bill.change = Decimal('0')
-                last_bill.save()
-
             # Calculate individual amounts as Decimal
             electricity = Decimal(ap_el)
             cleaning = Decimal(ap_clean)
@@ -122,12 +102,26 @@ def create_apartment_bills_task(apartments_ids, for_month, ap_el, ap_clean, ap_e
             total_amount = (electricity + cleaning + elevator_electricity +
                             elevator_maintenance + entrance_maintenance)
 
-            # Subtract last_change from total_amount (if negative, it will add to total)
-            if last_change > total_amount:
-                last_change -= total_amount
-                total_amount = Decimal('0.0')
+            # Get the last bill and its change amount
+            last_bill = ApartmentBill.objects.filter(apartment=apartment).order_by('-for_month').first()
+            total_maintenance_amount = TotalMaintenanceAmount.objects.filter(
+                building__entrance=apartment.entrance
+            ).first()
+
+            # Get last_change if the previous bill is paid (can be positive or negative)
+            if last_bill and last_bill.is_paid:
+                last_change = Decimal(last_bill.change)
+                if last_change >= total_amount:
+                    last_change -= total_amount
+                    total_amount = Decimal('0.0')
+                    if total_maintenance_amount:
+                        total_maintenance_amount.amount += Decimal(entr_maint)
+                        total_maintenance_amount.save()
+                else:
+                    total_amount -= last_change
+                    last_change = Decimal('0.0')
             else:
-                total_amount -= last_change
+                last_change = Decimal('0.0') if not last_bill else Decimal(last_bill.change)
 
             # Prepare email details
             email_subject = email_subject_template.format(apartment_number=apartment.number)
@@ -139,13 +133,13 @@ def create_apartment_bills_task(apartments_ids, for_month, ap_el, ap_clean, ap_e
                 elevator_electricity=elevator_electricity,
                 elevator_maintenance=elevator_maintenance,
                 entrance_maintenance=entrance_maintenance,
-                previous_balance=last_change,  # Renamed to be more clear
                 total=total_amount,
                 change=last_change
             )
             recipient_list = [apartment.owner.email]
 
-            tasks.append(create_apartment_bill_task.s(
+            # Create the task
+            task = create_apartment_bill_task.s(
                 apartment.id,
                 for_month,
                 electricity,
@@ -157,10 +151,21 @@ def create_apartment_bills_task(apartments_ids, for_month, ap_el, ap_clean, ap_e
                 email_subject,
                 email_message,
                 from_email,
-                recipient_list
-            ))
+                recipient_list,
+                total_amount
+            )
+            tasks.append(task)
 
-    group(tasks).apply_async()
+    # Execute all tasks in chunks
+    if tasks:
+        print("Starting task group execution in chunks...")
+        task_chunks = [tasks[i:i + CHUNK_SIZE] for i in range(0, len(tasks), CHUNK_SIZE)]
+        for chunk in task_chunks:
+            try:
+                result = group(chunk).apply_async()
+                print(f"Task chunk executed successfully. Group ID: {result.id}")
+            except Exception as e:
+                print(f"Task group execution failed: {e}")
 
 
 @shared_task

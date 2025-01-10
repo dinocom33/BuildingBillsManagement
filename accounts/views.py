@@ -336,9 +336,9 @@ class PayBillView(View):
         if given_sum < 0:
             return self._handle_error('Sum must be greater than 0', month, year)
 
-        if given_sum == 0 and apartment_bill.change <= 0:
-            messages.error(self.request, 'Sum must be equal or greater than total sum when there is no change equal or greater than total sum')
-            return redirect(f'{reverse("dashboard")}?month={apartment_bill.for_month.month}&year={apartment_bill.for_month.year}')
+        # if given_sum == 0 and apartment_bill.change <= 0:
+        #     messages.error(self.request, 'Sum must be equal or greater than total sum when there is no change equal or greater than total sum')
+        #     return redirect(f'{reverse("dashboard")}?month={apartment_bill.for_month.month}&year={apartment_bill.for_month.year}')
 
         # if given_sum < apartment_bill.total_bill() - Decimal('0.001'):
         #     return self._handle_error('Sum must be greater than or equal to total bill', month, year)
@@ -368,7 +368,6 @@ class PayBillView(View):
     def _process_payment(self, apartment_bill, given_sum, total_maintenance_amount):
         """Process the bill payment and update relevant records."""
 
-
         if given_sum >= apartment_bill.total:
             apartment_bill.change = given_sum - apartment_bill.total
         elif given_sum < apartment_bill.total:
@@ -388,14 +387,13 @@ class PayBillView(View):
             ).order_by('for_month').first()
 
             if next_month_bill:
-                # next_month_bill.change += apartment_bill.change
                 if apartment_bill.change > next_month_bill.total:
                     next_month_bill.change = apartment_bill.change - next_month_bill.total
                     next_month_bill.total = Decimal('0.0')
                     next_month_bill.is_paid = True
                 else:
                     next_month_bill.total -= apartment_bill.change
-                apartment_bill.change = Decimal('0.0')
+
                 apartment_bill.save()
                 next_month_bill.save()
 
