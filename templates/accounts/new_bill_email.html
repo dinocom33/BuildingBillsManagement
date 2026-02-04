@@ -1,146 +1,92 @@
 {% autoescape off %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New Bill</title>
-    <style>
-        body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f8f9fa;
-            margin: 0;
-            padding: 0;
-            color: #495057;
-        }
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Нова сметка</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f4;
+                color: #333333;
+            }
 
-        .email-wrapper {
-            width: 100%;
-            background-color: #f8f9fa;
-            padding: 20px;
-        }
+            .container {
+                max-width: 600px;
+                margin: 20px auto;
+                background-color: #ffffff;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
 
-        .email-content {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
+            h2 {
+                color: #4CAF50;
+                text-align: center;
+            }
 
-        .email-header {
-            background-color: #0d6efd;
-            padding: 20px;
-            text-align: center;
-            color: #ffffff;
-        }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+            }
 
-        .email-header h2 {
-            margin: 0;
-            font-size: 24px;
-            line-height: 1.5;
-            font-weight: bold;
-        }
+            th, td {
+                padding: 10px;
+                border: 1px solid #dddddd;
+                text-align: left;
+            }
 
-        .email-body {
-            padding: 30px;
-            font-size: 16px;
-            line-height: 1.7;
-            color: #495057;
-        }
+            th {
+                background-color: #f4f4f4;
+            }
 
-        .email-body p {
-            margin: 0 0 20px;
-            line-height: 1.7;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th, td {
-            padding: 10px;
-            border: 1px solid #dee2e6;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f8f9fa;
-            color: #212529;
-        }
-
-        .total {
-            font-weight: bold;
-            color: #0d6efd;
-        }
-
-        .email-footer {
-            padding: 20px;
-            text-align: center;
-            font-size: 14px;
-            background-color: #f8f9fa;
-            color: #868e96;
-        }
-    </style>
-</head>
-<body>
-<div class="email-wrapper">
-    <div class="email-content">
-        <!-- Email Header -->
-        <div class="email-header">
-            <h2>New Bill for Apartment {{ apartment_number }}</h2>
-        </div>
-
-        <!-- Email Body -->
-        <div class="email-body">
-            <p>Hello,</p>
-            <p>You have a new bill for the month of <strong>{{ for_month }}</strong> as follows:</p>
-
-            <table>
-                <tr>
-                    <th>Service</th>
-                    <th>Amount (lv)</th>
-                </tr>
-                <tr>
-                    <td>Electricity</td>
-                    <td>{{ electricity|floatformat:2 }} lv</td>
-                </tr>
-                <tr>
-                    <td>Cleaning</td>
-                    <td>{{ cleaning|floatformat:2 }} lv</td>
-                </tr>
-                <tr>
-                    <td>Elevator Electricity</td>
-                    <td>{{ elevator_electricity|floatformat:2 }} lv</td>
-                </tr>
-                <tr>
-                    <td>Elevator Maintenance</td>
-                    <td>{{ elevator_maintenance|floatformat:2 }} lv</td>
-                </tr>
-                <tr>
-                    <td>Entrance Maintenance</td>
-                    <td>{{ entrance_maintenance|floatformat:2 }} lv</td>
-                </tr>
-                <tr class="total">
-                    <td>Total Sum</td>
-                    <td>{{ total|floatformat:2 }} lv</td>
-                </tr>
-            </table>
-
-            <p>Thank you for your prompt payment.</p>
-            <p>Sincerely,</p>
-            <p>The Management</p>
-        </div>
-
-        <!-- Email Footer -->
-        <div class="email-footer">
-            <p>You are receiving this email because you are registered as a resident in this building.</p>
-        </div>
+            .total {
+                font-weight: bold;
+                color: #4CAF50;
+            }
+        </style>
+    </head>
+    <body>
+    <div class="container">
+        <h2>Нова сметка за апартамент {{ apartment_number }}</h2>
+        <p>Здравейте,</p>
+        <p>Имате нови сметки за месец {{ for_month }} както следва:</p>
+        <table>
+            <tr>
+                <th>Услуга</th>
+                <th>Сума (EUR)</th>
+            </tr>
+            <tr>
+                <td>Ток вход</td>
+                <td>{{ electricity|floatformat:2 }} EUR</td>
+            </tr>
+            <tr>
+                <td>Ток асансьор</td>
+                <td>{{ elevator_electricity|floatformat:2 }} EUR</td>
+            </tr>
+            <tr>
+                <td>Почистване</td>
+                <td>{{ cleaning|floatformat:2 }} EUR</td>
+            </tr>
+            <tr>
+                <td>Обслужване асансьор</td>
+                <td>{{ elevator_maintenance|floatformat:2 }} EUR</td>
+            </tr>
+            <tr>
+                <td>Фонд ремонти</td>
+                <td>{{ entrance_maintenance|floatformat:2 }} EUR</td>
+            </tr>
+            <tr class="total">
+                <td>Общо</td>
+                <td>{{ total|floatformat:2 }} EUR</td>
+            </tr>
+        </table>
+        <p>Благодарим ви за навремнното плащане.</p>
+        <p>С уважение,</p>
+        <p>Домоуправител</p>
     </div>
-</div>
-</body>
-</html>
+    </body>
+    </html>
 {% endautoescape %}

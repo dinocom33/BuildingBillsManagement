@@ -1,162 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>{{ title }}</title>
-        <style>
-            body {
-                font-family: 'Helvetica Neue', Arial, sans-serif;
-                background-color: #f8f9fa;
-                margin: 0;
-                padding: 0;
-                color: #495057;
-            }
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>{{ title }}</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            color: #495057;
+        }
 
-            .email-wrapper {
-                width: 100%;
-                background-color: #f8f9fa;
-                padding: 20px;
-            }
+        .email-wrapper {
+            width: 100%;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
 
-            .email-content {
-                max-width: 600px;
-                margin: 0 auto;
-                background-color: #ffffff;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-                overflow: hidden;
-            }
+        .email-content {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
 
-            .email-header {
-                background-color: #0d6efd;
-                padding: 20px;
-                text-align: center;
-                color: #ffffff;
-            }
+        .email-header {
+            background-color: #0d6efd;
+            padding: 20px;
+            text-align: center;
+            color: #ffffff;
+        }
 
-            .email-header h1 {
-                margin: 0;
-                font-size: 24px;
-                line-height: 1.5;
-                font-weight: bold;
-            }
+        .email-header h1 {
+            margin: 0;
+            font-size: 24px;
+            line-height: 1.5;
+            font-weight: bold;
+        }
 
-            .email-body {
-                padding: 30px;
-                font-size: 16px;
-                line-height: 1.7;
-                color: #495057;
-            }
+        .email-body {
+            padding: 30px;
+            font-size: 16px;
+            line-height: 1.7;
+            color: #495057;
+        }
 
-            .email-body h2 {
-                font-size: 20px;
-                color: #0d6efd;
-                margin-bottom: 15px;
-            }
+        .email-body h2 {
+            font-size: 20px;
+            color: #0d6efd;
+            margin-bottom: 15px;
+        }
 
-            .email-body p {
-                margin: 0 0 20px;
-                line-height: 1.7;
-            }
+        .email-body p {
+            margin: 0 0 20px;
+            line-height: 1.7;
+        }
 
-            .email-body strong {
-                color: #212529;
-            }
+        .email-body strong {
+            color: #212529;
+        }
 
-            .email-footer {
-                padding: 20px;
-                text-align: center;
-                font-size: 14px;
-                background-color: #f8f9fa;
-                color: #868e96;
-            }
+        .email-footer {
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+            background-color: #f8f9fa;
+            color: #868e96;
+        }
 
-            .btn {
-                display: inline-block;
-                background-color: #0d6efd;
-                color: #ffffff;
-                padding: 12px 25px;
-                border-radius: 50px;
-                text-decoration: none;
-                font-size: 16px;
-                font-weight: bold;
-            }
+        .btn {
+            display: inline-block;
+            background-color: #0d6efd;
+            color: #ffffff;
+            padding: 12px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: bold;
+        }
 
-            .btn:hover {
-                background-color: #0056b3;
-            }
+        .btn:hover {
+            background-color: #0056b3;
+        }
 
-            .footer-text {
-                margin-top: 10px;
-                font-size: 14px;
-                color: #868e96;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="email-wrapper">
-            <div class="email-content">
-                <!-- Email Header -->
-                <div class="email-header">
-                    <h1>
-                        {{ building.number }} Building - {{ entrance.name }}
-                        Entrance Notification
-                    </h1>
-                </div>
+        .footer-text {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #868e96;
+        }
+    </style>
+</head>
+<body>
+<div class="email-wrapper">
+    <div class="email-content">
+        <!-- Email Header -->
+        <div class="email-header">
+            <h1>
+                Блок {{ building.number }} Вход {{ entrance.name }}
+                Съобщение
+            </h1>
+        </div>
 
-                <!-- Email Body -->
-                <div class="email-body">
-                    <h2>Hello,</h2>
+        <!-- Email Body -->
+        <div class="email-body">
+            <h2>Здравейте,</h2>
 
-                    <p>
-                        You have received a new message from the building
-                        management for
-                        <strong>Building {{ building.number }}</strong>,
-                        <strong>Entrance {{ entrance.name }}</strong>.
-                    </p>
+            <p>
+                Имате ново съобщение за
+                <strong>Блок {{ building.number }}</strong>,
+                <strong>Вход {{ entrance.name }}</strong>.
+            </p>
 
-                    <p>
-                        <strong>Message Title:</strong><br />
-                        {{ title }}
-                    </p>
+            <p>
+                <strong>Message Title:</strong><br/>
+                {{ title }}
+            </p>
 
-                    <p>
-                        <strong>Message Content:</strong><br />
-                        {{ text }}
-                    </p>
+            <p>
+                <strong>Заглавие:</strong><br/>
+                {{ text }}
+            </p>
 
-                    <p>
-                        <strong>File:</strong><br />
-                        {{ file }}
-                    </p>
+            <p>
+                <strong>Файл:</strong><br/>
+                {{ file }}
+            </p>
 
-                    <p>
-                        For more information and to view additional messages,
-                        please visit your building dashboard by clicking the
-                        button below.
-                    </p>
+            <p>
+                За повече информация и за да видите допълнителни съобщения, моля, посетете таблото за управление на
+                сградата, като щракнете върху бутона по-долу.
+            </p>
 
-                    <div style="text-align: center; margin-top: 30px">
-                        <a href="{{ dashboard_link }}" class="btn"
-                            >View Dashboard</a
-                        >
-                    </div>
-                </div>
-
-                <!-- Email Footer -->
-                <div class="email-footer">
-                    <p>
-                        Sent from
-                        <strong>Building {{ building.number }}</strong>,
-                        <strong>Entrance {{ entrance.name }}</strong>.
-                    </p>
-                    <p class="footer-text">
-                        You are receiving this email because you are registered
-                        as a resident in this building.
-                    </p>
-                </div>
+            <div style="text-align: center; margin-top: 30px">
+                <a href="{{ dashboard_link }}" class="btn"
+                >Табло</a
+                >
             </div>
         </div>
-    </body>
+
+        <!-- Email Footer -->
+        <div class="email-footer">
+            <p>
+                Изпратено от
+                <strong>Блок {{ building.number }}</strong>,
+                <strong>Вход {{ entrance.name }}</strong>.
+            </p>
+            <p class="footer-text">
+                Получавате този имейл, защото сте регистриран като жител в тази сграда.
+            </p>
+        </div>
+    </div>
+</div>
+</body>
 </html>

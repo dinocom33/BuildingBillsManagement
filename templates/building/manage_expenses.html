@@ -8,8 +8,8 @@
     <div class="container py-4" id="table-container">
         <!-- Header Section -->
         <div class="text-center mb-5">
-            <h1 class="display-5 fw-bold">
-                Expenses for Entrance <span class="text-primary fw-bold">{{ entrance }}</span>
+            <h1 class="display-5">
+                Разходи за вход <span class="text-primary fw-bold">{{ entrance }}</span>
             </h1>
             <h2 class="h4 text-muted">
                 <span class="text-primary fw-semibold">{{ month|month_name }} {{ year }}</span>
@@ -21,18 +21,18 @@
             <a href="?month={{ month|add:-1 }}&year={{ year }}"
                class="btn btn-light rounded-pill px-3 hover-bg-light d-flex align-items-center">
                 <i class="fas fa-arrow-left me-2"></i>
-                Prev
+                Назад
             </a>
             <a href="?month={{ month|add:1 }}&year={{ year }}"
                class="btn btn-light rounded-pill px-3 hover-bg-light d-flex align-items-center">
-                Next
+                Напред
                 <i class="fas fa-arrow-right ms-2"></i>
             </a>
             {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
                 <button type="button" class="btn btn-danger rounded-pill px-3 hover-bg-danger d-flex align-items-center"
                         data-bs-toggle="modal" data-bs-target="#expenseModal" id="add-expense">
                     <i class="fas fa-plus me-2"></i>
-                    Add Expense
+                    Добави разход
                 </button>
             {% endif %}
         </div>
@@ -40,8 +40,8 @@
         <!-- Total Maintenance Amount -->
         <div class="text-center mb-4">
             <h3 id="total-bill" class="h5 fw-semibold">
-                Total maintenance amount: <span class="text-primary fw-bold">
-                    {{ total_maintenance_amount|floatformat:2 }} lv
+                Обща сума фонд ремонти: <span class="text-primary fw-bold">
+                    {{ total_maintenance_amount|floatformat:2 }} EUR
                 </span>
             </h3>
         </div>
@@ -55,10 +55,10 @@
                     <table class="table table-hover mb-0 align-middle compact-table">
                         <thead>
                         <tr class="bg-light">
-                            <th>Name</th>
-                            <th>Description</th>
-                            <th>Cost</th>
-                            <th>Month</th>
+                            <th>Име</th>
+                            <th>Описание</th>
+                            <th>Цена</th>
+                            <th>Месец</th>
                         </tr>
                         </thead>
                         <tbody>

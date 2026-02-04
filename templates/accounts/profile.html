@@ -15,7 +15,7 @@
 
                             <!-- Profile Form Section -->
                             <div class="col-md-10 col-lg-6 order-2 order-lg-1">
-                                <h2 class="text-center fw-bold mb-4">My Profile</h2>
+                                <h2 class="text-center fw-bold mb-4">Моят профил</h2>
 
                                 <!-- Profile Update Form -->
                                 <form action="{% url 'profile' %}" method="POST">
@@ -24,7 +24,7 @@
                                     <!-- First and Last Name Fields -->
                                     <div class="row mb-4">
                                         <div class="col">
-                                            <label for="first_name" class="form-label">First Name</label>
+                                            <label for="first_name" class="form-label">Име</label>
                                             <div class="input-group">
                                                 <span class="input-group-text border-0 bg-light">
                                                     <i class="fas fa-user text-primary"></i>
@@ -33,7 +33,7 @@
                                             </div>
                                         </div>
                                         <div class="col">
-                                            <label for="last_name" class="form-label">Last Name</label>
+                                            <label for="last_name" class="form-label">Фамилия</label>
                                             <div class="input-group">
                                                 <span class="input-group-text border-0 bg-light">
                                                     <i class="fas fa-user text-primary"></i>
@@ -45,7 +45,7 @@
 
                                     <!-- Email Field -->
                                     <div class="mb-4">
-                                        <label for="email" class="form-label">Email</label>
+                                        <label for="email" class="form-label">Имейл</label>
                                         <div class="input-group">
                                             <span class="input-group-text border-0 bg-light">
                                                 <i class="fas fa-envelope text-primary"></i>
@@ -58,13 +58,13 @@
                                     <div class="d-flex justify-content-center mb-4">
                                         <button type="submit" class="btn btn-primary rounded-pill px-4">
                                             <i class="fas fa-save me-2"></i>
-                                            Save Changes
+                                            Запиши
                                         </button>
                                     </div>
                                 </form>
 
                                 <!-- Change Password Section -->
-                                <h2 class="text-center fw-bold mt-5 mb-4">Change Password</h2>
+                                <h2 class="text-center fw-bold mt-5 mb-4">Смяна парола</h2>
 
                                 <!-- Password Change Form -->
                                 <form action="{% url 'profile' %}" method="POST">
@@ -72,13 +72,13 @@
 
                                     <!-- Current Password -->
                                     <div class="mb-4">
-                                        <label for="old_password" class="form-label">Current Password</label>
+                                        <label for="old_password" class="form-label">Стара парола</label>
                                         <div class="input-group">
         <span class="input-group-text border-0 bg-light">
             <i class="fas fa-key text-primary"></i>
         </span>
                                             <input type="password" name="old_password" id="old_password"
-                                                   class="form-control" placeholder="Enter current password">
+                                                   class="form-control" placeholder="Въведете настоящата парола">
                                         </div>
                                         {% if password_form.old_password.errors %}
                                             <div class="text-danger small mt-1">
@@ -89,13 +89,13 @@
 
                                     <!-- New Password -->
                                     <div class="mb-4">
-                                        <label for="new_password1" class="form-label">New Password</label>
+                                        <label for="new_password1" class="form-label">Нова парола</label>
                                         <div class="input-group">
         <span class="input-group-text border-0 bg-light">
             <i class="fas fa-lock text-primary"></i>
         </span>
                                             <input type="password" name="new_password1" id="new_password1"
-                                                   class="form-control" placeholder="Enter new password">
+                                                   class="form-control" placeholder="Въведи нова парола">
                                         </div>
                                         {% if password_form.new_password1.errors %}
                                             <div class="text-danger small mt-1">
@@ -106,13 +106,13 @@
 
                                     <!-- Confirm New Password -->
                                     <div class="mb-4">
-                                        <label for="new_password2" class="form-label">Confirm New Password</label>
+                                        <label for="new_password2" class="form-label">Потвърди парола</label>
                                         <div class="input-group">
         <span class="input-group-text border-0 bg-light">
             <i class="fas fa-lock text-primary"></i>
         </span>
                                             <input type="password" name="new_password2" id="new_password2"
-                                                   class="form-control" placeholder="Re-enter new password">
+                                                   class="form-control" placeholder="Потвърди паролата">
                                         </div>
                                         {% if password_form.new_password2.errors %}
                                             <div class="text-danger small mt-1">
@@ -126,7 +126,7 @@
                                     <div class="d-flex justify-content-center mb-4">
                                         <button type="submit" class="btn btn-warning rounded-pill px-4">
                                             <i class="fas fa-key me-2"></i>
-                                            Change Password
+                                            Запиши
                                         </button>
                                     </div>
                                 </form>

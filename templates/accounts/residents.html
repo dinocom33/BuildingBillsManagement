@@ -9,7 +9,7 @@
         <!-- Header Section -->
         <div class="text-center mb-5">
             <h1 class="display-5 fw-bold">
-                All Residents in Entrance <span class="text-primary fw-bold">{{ entrance }}</span>
+                Всички жители във вход <span class="text-primary fw-bold">{{ entrance }}</span>
             </h1>
         </div>
 
@@ -20,7 +20,7 @@
                         class="btn btn-danger rounded-pill px-3 hover-bg-danger d-flex align-items-center"
                         data-bs-toggle="modal" data-bs-target="#addResidentModal" id="add-resident">
                     <i class="fas fa-plus me-2"></i>
-                    Add Resident
+                    Нов жител
                 </button>
             {% endif %}
         </div>
@@ -33,12 +33,12 @@
                     <table class="table table-hover mb-0 align-middle compact-table">
                         <thead class="bg-light">
                         <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Apartment</th>
-                            <th>Floor</th>
-                            <th>Entrance</th>
-                            <th>Building</th>
+                            <th>Име</th>
+                            <th>Имейл</th>
+                            <th>Апартамент</th>
+                            <th>Етаж</th>
+                            <th>Вход</th>
+                            <th>Блок</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -57,7 +57,7 @@
                             <tr>
                                 <td colspan="5" class="text-center py-4 text-muted">
                                     <i class="fas fa-folder-open me-2"></i>
-                                    No residents found
+                                    Няма добавени жители
                                 </td>
                             </tr>
                         {% endif %}
@@ -75,10 +75,10 @@
                 <div class="modal-header bg-primary text-white border-0">
                     <h5 class="modal-title">
                         <i class="fas fa-user-plus me-2"></i>
-                        Enter the Resident Details
+                        Добавяне на жител
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                            aria-label="Close"></button>
+                            aria-label="Затвори"></button>
                 </div>
                 <form method="post" action="{% url 'create_resident' %}">
                     {% csrf_token %}
@@ -86,51 +86,51 @@
                         <!-- First and Last Name -->
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="first_name" class="form-label">First Name</label>
+                                <label for="first_name" class="form-label">Име</label>
                                 <input name="first_name" id="first_name" type="text"
-                                       placeholder="Enter first name" class="form-control border-0 bg-light" required/>
+                                       placeholder="Въведи име" class="form-control border-0 bg-light" required/>
                             </div>
                             <div class="col-md-6">
-                                <label for="last_name" class="form-label">Last Name</label>
+                                <label for="last_name" class="form-label">Фамилия</label>
                                 <input name="last_name" id="last_name" type="text"
-                                       placeholder="Enter last name" class="form-control border-0 bg-light" required/>
+                                       placeholder="Въведи фамилия" class="form-control border-0 bg-light" required/>
                             </div>
                         </div>
 
                         <!-- Email -->
                         <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
+                            <label for="email" class="form-label">Имейл</label>
                             <input name="email" id="email" type="email"
-                                   placeholder="Enter resident's email" class="form-control border-0 bg-light"
+                                   placeholder="Въведи имейл" class="form-control border-0 bg-light"
                                    required/>
                         </div>
 
                         <!-- Password and Password Confirmation -->
-{#                        <div class="row mb-3">#}
-{#                            <div class="col-md-6">#}
-{#                                <label for="password" class="form-label">Password</label>#}
-{#                                <input name="password" id="password" type="password"#}
-{#                                       placeholder="Enter password" class="form-control border-0 bg-light" required/>#}
-{#                            </div>#}
-{#                            <div class="col-md-6">#}
-{#                                <label for="password2" class="form-label">Repeat Password</label>#}
-{#                                <input name="password2" id="password2" type="password"#}
-{#                                       placeholder="Repeat password" class="form-control border-0 bg-light" required/>#}
-{#                            </div>#}
-{#                        </div>#}
+                        {#                        <div class="row mb-3">#}
+                        {#                            <div class="col-md-6">#}
+                        {#                                <label for="password" class="form-label">Парола</label>#}
+                        {#                                <input name="password" id="password" type="password"#}
+                        {#                                       placeholder="Въведи парола" class="form-control border-0 bg-light" required/>#}
+                        {#                            </div>#}
+                        {#                            <div class="col-md-6">#}
+                        {#                                <label for="password2" class="form-label">Повтори парола</label>#}
+                        {#                                <input name="password2" id="password2" type="password"#}
+                        {#                                       placeholder="Въведи същата парола" class="form-control border-0 bg-light" required/>#}
+                        {#                            </div>#}
+                        {#                        </div>#}
 
                         <!-- Building and Entrance -->
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="building" class="form-label">Building Number</label>
+                                <label for="building" class="form-label">Номер на блок</label>
                                 <input name="building" id="building" type="number" step="1"
-                                       placeholder="Enter building number" class="form-control border-0 bg-light"
+                                       placeholder="Въведи номер на блок" class="form-control border-0 bg-light"
                                        required/>
                             </div>
                             <div class="col-md-6">
-                                <label for="entrance" class="form-label">Entrance Number</label>
+                                <label for="entrance" class="form-label">Номер на вход</label>
                                 <input name="entrance" id="entrance" type="text"
-                                       placeholder="Enter entrance number" class="form-control border-0 bg-light"
+                                       placeholder="Въведи номер на вход" class="form-control border-0 bg-light"
                                        required/>
                             </div>
                         </div>
@@ -138,33 +138,33 @@
                         <!-- Floor and Apartment -->
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="floor" class="form-label">Floor Number</label>
+                                <label for="floor" class="form-label">Етаж</label>
                                 <input name="floor" id="floor" type="number" step="1"
-                                       placeholder="Enter floor number" class="form-control border-0 bg-light"
+                                       placeholder="Въведи етаж" class="form-control border-0 bg-light"
                                        required/>
                             </div>
                             <div class="col-md-6">
-                                <label for="apartment" class="form-label">Apartment Number</label>
+                                <label for="apartment" class="form-label">Номер на апартамент</label>
                                 <input name="apartment" id="apartment" type="number" step="1"
-                                       placeholder="Enter apartment number" class="form-control border-0 bg-light"
+                                       placeholder="Въведи номер на апартамент" class="form-control border-0 bg-light"
                                        required/>
                             </div>
                         </div>
-{#                        <div>#}
-{#                            <label for="address" class="form-label">Address</label>#}
-{#                            <textarea name="address" id="address" class="form-control border-0 bg-light"#}
-{#                                      required placeholder="Enter building's address" rows="5"></textarea>#}
-{#                        </div>#}
+                        {#                        <div>#}
+                        {#                            <label for="address" class="form-label">Адрес</label>#}
+                        {#                            <textarea name="address" id="address" class="form-control border-0 bg-light"#}
+                        {#                                      required placeholder="Въведи адрес на блок" rows="5"></textarea>#}
+                        {#                        </div>#}
                     </div>
 
                     <div class="modal-footer border-0">
                         <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">
                             <i class="fas fa-times me-2"></i>
-                            Close
+                            Затвори
                         </button>
                         <button type="submit" class="btn btn-primary rounded-pill px-4">
                             <i class="fas fa-check me-2"></i>
-                            Add Resident
+                            Запиши
                         </button>
                     </div>
                 </form>

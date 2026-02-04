@@ -9,7 +9,7 @@
         <!-- Header Section -->
         <div class="text-center mb-5">
             <h1 class="display-5 fw-bold">
-                Bills for Apartment <span class="text-primary fw-bold">{{ apartment }}</span>
+                Сметки на апартамент <span class="text-primary fw-bold">{{ apartment }}</span>
             </h1>
         </div>
 
@@ -21,18 +21,18 @@
                     <table class="table table-hover mb-0 align-middle compact-table">
                         <thead class="bg-light">
                         <tr>
-                            <th>Owner</th>
-                            <th>Apartment</th>
-                            <th>Electricity</th>
-                            <th>Cleaning</th>
-                            <th>Elevator Electricity</th>
-                            <th>Elevator Maintenance</th>
-                            <th>Entrance Maintenance</th>
-                            <th>Total Bill</th>
-                            <th>Given amount</th>
-                            <th>Change</th>
-                            <th>Month</th>
-                            <th>Paid</th>
+                            <th>Живущ</th>
+                            <th>Апартамент</th>
+                            <th>ТОКОЧ</th>
+                            <th>ПОЧ</th>
+                            <th>ТОКАС</th>
+                            <th>ПОДАС</th>
+                            <th>Фонд Ремонт</th>
+                            <th>Общо</th>
+                            <th>Платил</th>
+                            <th>Остатък</th>
+                            <th>Месец</th>
+                            <th>Платено</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -51,7 +51,7 @@
                                     <td>{{ bill.change }}</td>
                                     <td>{{ bill.for_month }}</td>
                                     <td class="fw-bold" style="color: {{ bill.is_paid|yesno:'#1ba87e,#CC3434' }}">
-                                        {{ bill.is_paid|yesno:'Yes,No' }}
+                                        {{ bill.is_paid|yesno:'Да,Не' }}
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -76,7 +76,8 @@
                     <ul class="pagination">
                         {% if bills.has_previous %}
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ bills.previous_page_number }}" aria-label="Previous">
+                                <a class="page-link" href="?page={{ bills.previous_page_number }}"
+                                   aria-label="Previous">
                                     <span aria-hidden="true">&laquo;</span>
                                 </a>
                             </li>

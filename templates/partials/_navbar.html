@@ -3,7 +3,7 @@
         <!-- Brand - Far Left -->
         <a class="navbar-brand d-flex align-items-center" href="{% url 'dashboard' %}">
             <i class="fa-solid fa-city text-primary me-2 fs-4"></i>
-            <span class="fw-bold">My Building</span>
+            <span class="fw-bold">Блок 388, вход Б</span>
         </a>
 
         <!-- Mobile Toggle -->
@@ -22,21 +22,21 @@
                         <a class="nav-link d-flex align-items-center px-3 py-2 rounded-pill hover-bg-light"
                            href="{% url 'dashboard' %}">
                             <i class="fa fa-dashboard text-primary me-2"></i>
-                            <span>Dashboard</span>
+                            <span>Табло</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link d-flex align-items-center px-3 py-2 rounded-pill hover-bg-light"
                            href="{% url 'building:expense_dashboard' %}">
                             <i class="fas fa-coins text-warning me-2"></i>
-                            <span>Expenses</span>
+                            <span>Разходи</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link d-flex align-items-center px-3 py-2 rounded-pill hover-bg-light"
                            href="{% url 'building:messages' %}">
                             <i class="fa-regular fa-message text-info me-2"></i>
-                            <span>Messages</span>
+                            <span>Съобщения</span>
                         </a>
                     </li>
 
@@ -45,25 +45,25 @@
                             <a class="nav-link dropdown-toggle d-flex align-items-center px-3 py-2 rounded-pill hover-bg-light"
                                href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-briefcase text-success me-2"></i>
-                                <span>Manage</span>
+                                <span>Управления</span>
                             </a>
                             <ul class="dropdown-menu border-0 shadow-sm">
                                 <li>
                                     <a class="dropdown-item py-2 px-3 rounded-3 mb-1" href="{% url 'residents' %}">
                                         <i class="fas fa-users text-info me-2"></i>
-                                        <span>Residents</span>
+                                        <span>Жители</span>
                                     </a>
                                 </li>
-{#                                <li>#}
-{#                                    <a class="dropdown-item py-2 px-3 rounded-3 mb-1" href="{% url 'building:apartments' %}">#}
-{#                                        <i class="fas fa-building text-primary me-2"></i>#}
-{#                                        <span>Apartments</span>#}
-{#                                    </a>#}
-{#                                </li>#}
+                                {#                                <li>#}
+                                {#                                    <a class="dropdown-item py-2 px-3 rounded-3 mb-1" href="{% url 'building:apartments' %}">#}
+                                {#                                        <i class="fas fa-building text-primary me-2"></i>#}
+                                {#                                        <span>Апартаменти</span>#}
+                                {#                                    </a>#}
+                                {#                                </li>#}
                                 <li>
                                     <a class="dropdown-item py-2 px-3 rounded-3" href="{% url 'building:bills' %}">
                                         <i class="fas fa-money-bill-alt text-success me-2"></i>
-                                        <span>Bills</span>
+                                        <span>Сметки</span>
                                     </a>
                                 </li>
                             </ul>
@@ -84,29 +84,31 @@
                         <li>
                             <a class="dropdown-item py-2 px-3 rounded-3 mb-1" href="{% url 'profile' %}">
                                 <i class="fas fa-user-edit text-primary me-2"></i>
-                                <span>My Profile</span>
+                                <span>Моят профил</span>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item py-2 px-3 rounded-3 mb-1" href="{% url 'my_bills' %}">
                                 <i class="fas fa-money-bill text-success me-2"></i>
-                                <span>My Bills</span>
+                                <span>Моите сметки</span>
                             </a>
                         </li>
                         {% if request.user.is_superuser %}
                             <li>
                                 <a class="dropdown-item py-2 px-3 rounded-3 mb-1" href="{% url 'admin:index' %}">
                                     <i class="fas fa-user-cog text-warning me-2"></i>
-                                    <span>Admin Panel</span>
+                                    <span>Админ панел</span>
                                 </a>
                             </li>
                         {% endif %}
-                        <li><hr class="dropdown-divider my-2"></li>
+                        <li>
+                            <hr class="dropdown-divider my-2">
+                        </li>
                         <li>
                             <a class="dropdown-item py-2 px-3 rounded-3 text-danger"
                                href="javascript:{document.getElementById('logout').submit()}">
                                 <i class="fas fa-sign-out-alt me-2"></i>
-                                <span>Logout</span>
+                                <span>Изход</span>
                             </a>
                             <form id="logout" method="POST" action="{% url 'logout' %}">
                                 {% csrf_token %}
@@ -118,7 +120,7 @@
             {% else %}
                 <a href="{% url 'login' %}" class="btn btn-primary rounded-pill px-4">
                     <i class="fas fa-sign-in-alt me-2"></i>
-                    <span>Login</span>
+                    <span>Вход</span>
                 </a>
             {% endif %}
         </div>
@@ -126,47 +128,47 @@
 </nav>
 
 <style>
-/* Custom styles for enhanced navigation */
-.navbar {
-    backdrop-filter: blur(10px);
-    background-color: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.04);
-}
+    /* Custom styles for enhanced navigation */
+    .navbar {
+        backdrop-filter: blur(10px);
+        background-color: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.04);
+    }
 
-.navbar-brand {
-    font-size: 1.4rem;
-}
+    .navbar-brand {
+        font-size: 1.4rem;
+    }
 
-.nav-link {
-    color: #4a5568;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-}
+    .nav-link {
+        color: #4a5568;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
 
-.nav-link:hover {
-    color: #2d3748;
-    background-color: rgba(0, 0, 0, 0.03);
-}
+    .nav-link:hover {
+        color: #2d3748;
+        background-color: rgba(0, 0, 0, 0.03);
+    }
 
-.dropdown-item {
-    transition: all 0.2s ease;
-}
+    .dropdown-item {
+        transition: all 0.2s ease;
+    }
 
-.dropdown-item:hover {
-    background-color: rgba(0, 0, 0, 0.03);
-}
+    .dropdown-item:hover {
+        background-color: rgba(0, 0, 0, 0.03);
+    }
 
-.hover-bg-light:hover {
-    background-color: rgba(0, 0, 0, 0.03);
-}
+    .hover-bg-light:hover {
+        background-color: rgba(0, 0, 0, 0.03);
+    }
 
-/* Add spacing between nav items */
-.navbar-nav .nav-item:not(:last-child) {
-    margin-right: 0.5rem;
-}
+    /* Add spacing between nav items */
+    .navbar-nav .nav-item:not(:last-child) {
+        margin-right: 0.5rem;
+    }
 
-/* User menu specific styles */
-.user-menu {
-    margin-left: auto;
-}
+    /* User menu specific styles */
+    .user-menu {
+        margin-left: auto;
+    }
 </style>

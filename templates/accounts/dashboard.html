@@ -3,13 +3,14 @@
 {% load month_tags %}
 
 {% block title %}Dashboard{% endblock title %}
+
 {% block content %}
     <div class="container" id="table-container">
         <!-- Header Section -->
         <div class="container py-4">
             <div class="text-center mb-5">
-                <h1 class="display-5 fw-bold">
-                    Bills for Entrance
+                <h1 class="display-5">
+                    Сметки на живущите във вход
                     <span class="text-primary fw-bold">{{ entrance }}</span>
                 </h1>
                 <h2 class="h4 text-muted">
@@ -22,11 +23,11 @@
                 <a href="?month={{ month|add:-1 }}&year={{ year }}"
                    class="btn btn-light rounded-pill px-3 hover-bg-light d-flex align-items-center">
                     <i class="fas fa-arrow-left me-2"></i>
-                    Prev
+                    Назад
                 </a>
                 <a href="?month={{ month|add:1 }}&year={{ year }}"
                    class="btn btn-light rounded-pill px-3 hover-bg-light d-flex align-items-center">
-                    Next
+                    Напред
                     <i class="fas fa-arrow-right ms-2"></i>
                 </a>
                 {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
@@ -47,17 +48,17 @@
                         <table class="table table-hover mb-0 align-middle compact-table">
                             <thead>
                             <tr class="bg-light">
-                                <th>Owner</th>
-                                <th>Apt</th>
-                                <th>Elec</th>
-                                <th>Clean</th>
-                                <th>El.Elec</th>
-                                <th>El.Mnt</th>
-                                <th>En.Mnt</th>
-                                <th>Total</th>
-                                <th>Given amount</th>
-                                <th>Chng</th>
-                                <th>Month</th>
+                                <th>Живущ</th>
+                                <th>Апартамент</th>
+                                <th>ТОКОЧ</th>
+                                <th>ПОЧ</th>
+                                <th>ТОКАС</th>
+                                <th>ПОДАС</th>
+                                <th>Фонд Ремонт</th>
+                                <th>Общо</th>
+                                <th>Платил</th>
+                                <th>Остатък</th>
+                                <th>Месец</th>
                                 {% if request.user.groups.all.0.name == 'manager' or request.user.is_superuser %}
                                     <th class="act">Act</th>
                                 {% else %}
