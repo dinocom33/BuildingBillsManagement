@@ -183,11 +183,12 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const payModal = document.getElementById('payModal');
+            const form = payModal.querySelector('form');
+            const actionTemplate = form.getAttribute('action');
             payModal.addEventListener('show.bs.modal', function (event) {
                 const button = event.relatedTarget;
                 const billId = button.getAttribute('data-bill-id');
-                const form = payModal.querySelector('form');
-                form.setAttribute('action', form.getAttribute('action').replace('0', billId));
+                form.setAttribute('action', actionTemplate.replace(/\/0\/$/, '/' + billId + '/'));
             });
         });
     </script>

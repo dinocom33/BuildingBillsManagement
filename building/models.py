@@ -40,6 +40,7 @@ class Apartment(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owner')
     floor = models.IntegerField()
     number = models.IntegerField()
+    exempt_from_bills = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['number']

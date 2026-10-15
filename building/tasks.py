@@ -81,8 +81,9 @@ def create_apartment_bill_task(apartment_id, for_month, total_electricity, total
 
 @shared_task
 def create_apartment_bills_task(apartments_ids, for_month, ap_el, ap_clean, ap_elev_el, ap_maint, entr_maint,
-                                email_subject_template, email_message_template, from_email):
+                                email_subject_template, email_message_template, from_email, exempt_ids=None):
     tasks = []
+    exempt_ids = set(exempt_ids or [])
     with transaction.atomic():
         for apartment_id in apartments_ids:
             try:
@@ -92,10 +93,11 @@ def create_apartment_bills_task(apartments_ids, for_month, ap_el, ap_clean, ap_e
                 continue
 
             # Calculate individual amounts as Decimal
-            electricity = Decimal(ap_el)
-            cleaning = Decimal(ap_clean)
-            elevator_electricity = Decimal(ap_elev_el)
-            elevator_maintenance = Decimal(ap_maint)
+            is_exempt = apartment_id in exempt_ids
+            electricity = Decimal(0) if is_exempt else Decimal(ap_el)
+            cleaning = Decimal(0) if is_exempt else Decimal(ap_clean)
+            elevator_electricity = Decimal(0) if is_exempt else Decimal(ap_elev_el)
+            elevator_maintenance = Decimal(0) if is_exempt else Decimal(ap_maint)
             entrance_maintenance = Decimal(entr_maint)
 
             # Calculate initial total

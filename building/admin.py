@@ -29,9 +29,10 @@ class EntranceAdmin(admin.ModelAdmin):
 @admin.register(Apartment)
 class ApartmentAdmin(admin.ModelAdmin):
     list_display = (
-        'owner_name', 'owner_email', 'number', 'building', 'entrance', 'floor'
+        'owner_name', 'owner_email', 'number', 'building', 'entrance', 'floor',
+        'exempt_from_bills'
     )
-    list_filter = ('owner', 'building', 'floor')
+    list_filter = ('owner', 'building', 'floor', 'exempt_from_bills')
     search_fields = ('number', 'owner__first_name', 'owner__last_name')
 
     def owner_name(self, obj):

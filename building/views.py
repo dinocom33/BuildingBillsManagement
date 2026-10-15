@@ -98,6 +98,7 @@ def create_apartment(request):
         owner = request.POST['owner']
         floor = request.POST['floor']
         number = request.POST['number']
+        exempt_from_bills = request.POST.get('exempt_from_bills') == 'on'
 
         try:
             # Use get() instead of filter().first() for more precise error handling
@@ -128,7 +129,8 @@ def create_apartment(request):
             entrance=entrance_obj,
             owner=owner_obj,
             floor=floor,
-            number=number
+            number=number,
+            exempt_from_bills=exempt_from_bills
         )
 
         messages.success(request, 'Apartment created successfully')
@@ -343,10 +345,15 @@ class CreateBillView(LoginRequiredMixin, UserPassesTestMixin, View):
             return redirect('building:bills')
 
         apartments_ids = list(apartments.values_list('id', flat=True))
-        ap_el = float(total_electricity) / len(apartments)
-        ap_clean = float(total_cleaning) / len(apartments)
-        ap_elev_el = float(total_elevator_electricity) / len(apartments)
-        ap_maint = float(total_elevator_maintenance) / len(apartments)
+        exempt_ids = list(apartments.filter(exempt_from_bills=True).values_list('id', flat=True))
+        payers_count = len(apartments_ids) - len(exempt_ids)
+        if payers_count == 0:
+            messages.error(request, 'All apartments in this entrance are exempt from bills.')
+            return redirect('building:bills')
+        ap_el = float(total_electricity) / payers_count
+        ap_clean = float(total_cleaning) / payers_count
+        ap_elev_el = float(total_elevator_electricity) / payers_count
+        ap_maint = float(total_elevator_maintenance) / payers_count
         entr_maint = float(total_entrance_maintenance) / len(apartments)
 
         email_subject_template = 'You have a new bill for your apartment {apartment_number}'
@@ -373,7 +380,8 @@ class CreateBillView(LoginRequiredMixin, UserPassesTestMixin, View):
             entr_maint,
             email_subject_template,
             email_message_template,
-            from_email
+            from_email,
+            exempt_ids
         )
 
         messages.success(request, 'Bill created successfully.')
